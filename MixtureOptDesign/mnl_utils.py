@@ -1,6 +1,14 @@
 import numpy as np
+from typing import Tuple
+import numpy as np
+import itertools
+from scipy.special import factorial
+from scipy.spatial.distance import pdist
+from scipy.cluster.hierarchy import linkage, fcluster
+from typing import List
 
-def mnl_random_initial_design(n_ingredients: int, n_alternatives: int, n_choice_sets: int, seed: int = None) -> np.ndarray:
+
+def get_random_initial_design_mnl(n_ingredients: int, n_alternatives: int, n_choice_sets: int, seed: int = None) -> np.ndarray:
     """
     Generate a random initial design for a multinomial logit model (MNL).
 
@@ -27,7 +35,7 @@ def mnl_random_initial_design(n_ingredients: int, n_alternatives: int, n_choice_
     Examples:
     ---------
     >>> np.random.seed(0)
-    >>> mnl_random_initial_design(2, 3, 2)
+    >>> get_random_initial_design_mnl(2, 3, 2)
     array([[[0.36995516, 0.46260563, 0.35426968],
             [0.13917321, 0.29266522, 0.50959886],
             [0.49087163, 0.24472915, 0.13613147]],
@@ -42,3 +50,453 @@ def mnl_random_initial_design(n_ingredients: int, n_alternatives: int, n_choice_
     random_values = np.random.rand(n_ingredients, n_alternatives, n_choice_sets)
     my_array = random_values / np.sum(random_values, axis=0)
     return my_array
+
+def get_choice_probabilities_mnl(design:np.ndarray, beta:np.ndarray, order:int) -> np.ndarray:
+    """
+    Compute the choice probabilities for a multinomial logit (MNL) model.
+    
+    Parameters
+    ----------
+    design : ndarray of shape (q, J, S)
+        The design matrix where q is the number of attributes, J is the number of alternatives, and S is the number of choice sets.
+        
+    beta : ndarray of shape (p,)
+        The vector of beta coefficients, where p is the number of parameters in the model.
+    order : int
+        The maximum order of interactions to include in the model. Must be a positive integer value.
+    
+    Returns
+    -------
+    P : ndarray of shape (J, S)
+        The choice probabilities for the MNL model, where J is the number of ingredients and S is the number of choice sets.
+    """
+    beta_star, beta_2FI, beta_3FI = get_beta_coefficients(beta, order, design.shape[0])
+    U = get_utilities(design, beta_star, beta_2FI, beta_3FI, order)
+    P = get_choice_probabilities(U)
+    return P
+
+def get_parameters(q:int, order:int) -> Tuple[int, int, int]:
+    """
+    Calculate the total number of parameters needed for a given order of interactions in an MNL model.
+
+    Parameters
+    ----------
+    q : int
+        The number of mixture ingredients.
+    order : int
+        The maximum order of interactions to include in the model. Must be a positive integer value. Can be 1, 2 or 3.
+
+
+    Returns
+    -------
+   Tuple[int, int, int]
+        A tuple containing the number of parameters for the linear, quadratic, and cubic effects.
+
+    """
+    
+    if order not in [1, 2, 3]:
+        raise ValueError("Order must be 1, 2, or 3")
+    
+    p1 = q - 1
+    p2 = q * (q - 1)//2
+    p3 = q * (q - 1) * (q - 2)//6
+
+
+    if order == 1:
+        return (p1, 0, 0)
+    elif order == 2:
+        return (p1, p2, 0)
+    else:
+        return (p1, p2, p3)
+
+def get_beta_coefficients(beta:np.ndarray, q:int, order:int) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Extract the beta coefficients for the different terms in the MNL model.
+
+    Parameters
+    ----------
+    beta : numpy.ndarray of shape (p,)
+        A 1-dimensional array of p numbers of beta coefficients for the model.
+    q : int
+        The number of ingredients.
+    order : int
+        The maximum order of interactions to include in the model. Must be a positive integer value. Can be 1, 2 or 3.
+
+    Returns
+    -------
+    Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]
+        A tuple of three numpy.ndarray objects containing the beta coefficients for the linear, quadratic, and cubic effects.
+
+    """
+    
+    
+    p1, p2, p3 = get_parameters(q, order)
+
+    if beta.size != p1 + p2 + p3:
+        raise ValueError("Number of beta coefficients does not match the number of parameters for the given order and number of features.")
+
+    
+
+
+    beta_star = beta[:p1] 
+    beta_2FI = beta[p1:p1+p2] if order >= 2 else np.empty(0)
+    beta_3FI = beta[p1 + p2:p1 + p2 +p3] if order == 3 else np.empty(0)
+
+    return beta_star, beta_2FI, beta_3FI
+
+def get_choice_probabilities(U:np.ndarray) -> np.ndarray:
+    """
+    Calculate choice probabilities from utilities using the MNL model.
+
+    Parameters
+    ----------
+    U : numpy.ndarray
+        2D array of size (J, S) representing the utilities of each alternative for each decision.
+
+    Returns
+    -------
+    P : numpy.ndarray
+        2D array of size (J, S) representing the choice probabilities of each alternative for each decision.
+    """
+    expU = np.exp(U)
+    P = expU / np.sum(expU, axis=1)
+    return P
+
+def multiply_arrays(*arg: np.ndarray) -> np.ndarray:
+    """
+    Multiply multiple numpy arrays element-wise.
+
+    Parameters
+    ----------
+    *arg : np.ndarray
+        Variable number of numpy arrays to multiply.
+
+    Returns
+    -------
+    np.ndarray
+        Numpy array that is the element-wise product of all the input arrays.
+
+    Raises
+    ------
+    ValueError
+        If no input arrays are provided.
+
+    Examples
+    --------
+    >>> a = np.array([1, 2, 3])
+    >>> b = np.array([4, 5, 6])
+    >>> c = np.array([7, 8, 9])
+    >>> multiply_arrays(a, b, c)
+    array([ 28,  80, 162])
+    """
+    if not arg:
+        raise ValueError("No input arrays provided.")
+    arg = arg
+    result = 1
+    for i in range(0, len(arg)):
+        result *= arg[i]
+    return result
+
+    
+def interaction_terms(arr: np.ndarray, interaction: int) -> np.ndarray:
+    """
+    Compute element-wise multiplication of all pairs of axes in a numpy array.
+
+    Parameters:
+    -----------
+    arr : np.ndarray
+        The input array.
+    interaction : int
+        The number of axes to multiply together. 
+
+    Returns:
+    --------
+    np.ndarray
+        A new array where the last axis corresponds to the element-wise multiplication
+        of all pairs of axes.
+    """
+    
+    if not isinstance(interaction,int): 
+         raise TypeError("non-integer interaction")
+    elif interaction < 0:
+        raise ValueError("interaction is zero or negative")
+    elif arr.size == 0:
+        raise ValueError("empty array")
+    
+    arr1 = arr.copy()
+    elements = list(range(arr.shape[0]))
+    
+    pairs = list(itertools.combinations(elements, interaction))
+    
+    axis_results = [multiply_arrays(*[arr1[i] for i in axes]) for axes in pairs]
+    
+    return np.stack(axis_results, axis=0)
+
+def get_utilities(design:np.ndarray, beta_star:np.ndarray, beta_2FI:np.ndarray, beta_3FI:np.ndarray, order:int) -> np.ndarray:
+    """
+    Calculates the utilities for each alternative and choice set in the design matrix for MNL model.
+
+    Parameters
+    ----------
+    design : ndarray of shape (q, J, S)
+        The design matrix where q is the number of attributes, J is the number of alternatives, and S is the number of
+        scenarios.
+    beta_star : ndarray of shape (q-1,)
+        The coefficients for the linear term in the MNL model.
+    beta_2FI : ndarray of shape (q * (q - 1)//2, )
+        The coefficients for the two-factor interaction terms in the MNL model.
+    beta_3FI : ndarray of shape (q * (q - 1) * (q - 2)//6,)
+        The coefficients for the three-factor interaction terms in the MNL model.
+    order : int
+        The maximum order of interactions to include in the model. Must be a positive integer value. Can be 1, 2 or 3.
+
+    Returns
+    -------
+    numpy.ndarray
+         Array of shape (J, S) containing utility (matrix) of alternative j in choice set s
+
+    """
+    try:
+        q, J, S = design.shape
+    except ValueError:
+        raise ValueError("Design matrix must be a 3-dimensional numpy array with dimensions (q, J, S).")
+    
+    # Calculate utilities
+    
+
+    # Linear term  
+    # # ORDER-1 X_JS
+    
+    x_js = design[:-1]
+    U_js_term1 = np.sum(beta_star.reshape(beta_star.size,1,1) * x_js, axis=0)
+    U = U_js_term1
+    
+
+    # Quadratic term
+    # ORDER-2 X_IJS*X_KJS - 2FI terms
+    if order >= 2:
+        x_js_2 = interaction_terms(design,2)
+        U_js_term2= np.sum(beta_2FI.reshape(beta_2FI.size,1,1)*x_js_2, axis=0)
+        U += U_js_term2
+
+        # Cubic term
+        # 0RDER-3 X_IJS*X_KJS*XLJS - 3FI terms
+        if order == 3:
+            x_js_3 = interaction_terms(design,3)
+            U_js_term3= np.sum(beta_2FI.reshape(beta_2FI.size,1,1)*x_js_3, axis=0)
+            U += U_js_term3
+
+    return U
+
+def get_model_matrix(design: np.ndarray, order: int) -> np.ndarray:
+    """
+    Constructs the model matrix for a multinomial logit model.
+
+    Parameters
+    ----------
+    design : numpy.ndarray
+        The design matrix of shape (q, J, S), where q is the number of ingredients,
+        J is the number of alternatives, and S is the number of choice sets.
+    order : int
+        The maximum order of interaction terms to include in the model matrix. 
+        Must be 1, 2, or 3.
+
+    Returns
+    -------
+    numpy.ndarray
+        The model matrix of shape (p, J, S), where p is the number of parameters
+        in the model.
+
+    Raises
+    ------
+    ValueError
+        If order is not 1, 2, or 3.
+
+    """
+    if order not in [1, 2, 3]:
+        raise ValueError("Order must be 1, 2, or 3")
+    
+    q, J, S = design.shape
+    p1, p2, p3 = get_parameters(q, order)
+    model_array = np.zeros((p1 + p2 + p3, J, S))
+
+    model_array[0:p1,:,:] = design[0:p1, :, :]
+
+    if order >= 2:
+        second_order = interaction_terms(design, 2)
+        model_array[p1:p1 + p2,:,:] = second_order
+
+    if order == 3:
+        third_order = interaction_terms(design, 3)
+        model_array[p1 + p2:p1 + p2 + p3,:,:] = third_order
+
+    return model_array
+
+
+def get_information_matrix_mnl(design: np.ndarray, order: int, beta:np.ndarray)->np.ndarray:
+    """
+    Get the information matrix for design and parameter beta.
+    The function returns the sum of the information matrices of the S choice sets.
+
+    Parameters:
+    design (np.ndarray): The design cube of shape (N, J, S).
+    order (int): The polynomial order of the design cube.
+    beta (np.ndarray): The parameter vector of shape (M,).
+
+    Returns:
+    np.ndarray: The information matrix of shape (M, M).
+    
+    """
+    
+    
+    Xs = get_model_matrix(design,order)
+    
+    #sum over all choice sets
+    Xs =  Xs.sum(axis=2)
+    
+    ps = get_choice_probabilities_mnl(design,beta,order)
+    
+    ps_ps = np.dot(ps,ps.T)
+    
+    Ps = np.diag(ps)
+    
+    # matrix multiplication to calculate the information matrix
+    I = Xs @ (Ps - ps_ps) @ Xs.T
+    return I
+    
+#The symbol Γ in mathematics represents the gamma function. The gamma function is a generalization of the factorial function and it is defined for all complex numbers except for the non-positive integers.
+#The gamma function can be defined by the following integral:Γ(z) = ∫[0,∞] t^(z-1) * e^(-t) dt where z is a complex number.
+#For non-negative integers n, the gamma function satisfies the identity:Γ(n) = (n-1)!
+   
+def get_moment_matrix(q:int, order:int) -> np.ndarray:
+    """
+    Computes the moment matrix for a multinomial logit (MNL) model of order 1, 2 or 3.
+    
+    Parameters:
+    -----------
+    q : int
+        The number of alternatives (categories).
+    order : int
+        The order of the MNL model (1, 2, or 3).
+        
+    Returns:
+    --------
+    np.ndarray
+        The moment matrix of size parameters x parameters, where parameters is the number
+        of parameters in the MNL model.
+    
+    Raises:
+    -------
+    ValueError
+        If order is not 1, 2 or 3.
+    """
+
+    if order not in [1, 2, 3]:
+        raise ValueError("Order must be 1, 2, or 3")
+    
+
+    p1,p2,p3 = get_parameters(q,order)
+    parameters = p1 + p2 + p3
+    
+    
+    auxiliary_matrix = np.zeros((parameters, q))
+    auxiliary_matrix[:q-1, :q-1] = np.eye(q-1)
+    counter = q - 2
+    
+    if order >= 2:
+        for i in range(q-1):
+            for j in range(i+1, q):
+                counter += 1
+                auxiliary_matrix[counter, i] = 1
+                auxiliary_matrix[counter, j] = 1
+    
+                
+    if order >= 3:
+        for i in range(q-2):
+            for j in range(i+1, q-1):
+                for k in range(j+1, q):
+                    counter += 1
+                    auxiliary_matrix[counter, i] = 1
+                    auxiliary_matrix[counter, j] = 1
+                    auxiliary_matrix[counter, k] = 1
+    
+                     
+    W = np.zeros((parameters, parameters))
+    for i in range(parameters):
+        aux_sum = auxiliary_matrix[i] + auxiliary_matrix
+        num = np.product(factorial(aux_sum),axis =1)
+        denom = factorial(q -1 + np.sum(aux_sum,axis=1))
+        W[i,:] = num/denom   
+        
+    return W
+ 
+
+def get_i_optimality_mnl(design: np.ndarray, order: int, beta: np.ndarray) -> float:
+    
+    """
+    Calculates the I-optimality criterion for a multinomial logit model design.
+
+    Parameters
+    ----------
+    design : numpy.ndarray
+        The design matrix of shape (n, p), where n is the number of observations and p is the number of predictors.
+    order : int
+        The maximum order of interaction effects to include in the model.
+    beta : numpy.ndarray
+        The parameter vector of shape (p, ) for the MNL model.
+
+    Returns
+    -------
+    i_opt : float
+        The I-optimality criterion value for the MNL design.
+    """
+
+    q = design.shape[0]
+    information_matrix = get_information_matrix_mnl(design, beta, order)
+    moments_matrix = get_moment_matrix(q, order)
+    
+    #sum of the diagonal elements of the matrix product of the inverse of the printed information matrix and the printed moments matrix. This is equivalent to computing the trace of the matrix product of these two matrices.
+    i_opt = np.trace(np.linalg.solve(information_matrix, moments_matrix))
+    return i_opt  
+
+
+def hierarchical_clustering(data:np.ndarray, k:int)-> List[np.ndarray]:
+    """
+    Perform hierarchical clustering on a dataset and return the coordinates of the clusters.
+
+    Parameters
+    ----------
+    data : ndarray
+        An n x d array representing n data points in d dimensions.
+    k : int
+        The number of clusters to extract.
+
+    Returns
+    -------
+    coords : list of ndarrays
+        A list of k ndarrays representing the coordinates of the data points for each cluster.
+
+    """
+    # Compute the pairwise distances between all pairs of data points
+    distances = pdist(data)
+
+    # Perform hierarchical clustering on the pairwise distances
+    clusters = linkage(distances, method='ward')
+
+    # Extract the labels of each data point based on the number of clusters
+    labels = fcluster(clusters, k, criterion='maxclust')
+
+    # Extract the coordinates of the data points for each cluster
+    coords = [data[np.where(labels == i)[0], :] for i in range(1, k+1)]
+    
+    # Plot the dendrogram
+    # Plot the dendrogram
+    #plt.figure(figsize=(10, 5))
+    #dendrogram(Z, color_threshold=1.0)
+    #plt.xlabel('Data points')
+    #plt.ylabel('Distance')
+    #plt.show()
+
+    return coords
+
+
