@@ -293,3 +293,69 @@ class TestGetUtilities(object):
                                         [1.938, 0.   , 2.   ]])
             
             assert np.allclose(get_utilities(arr, beta_star, beta_2FI, beta_3FI, order), expected_output)
+            
+class TestGenerateBetaParam(object):
+    def test_1D_array(self):
+        
+        # Test that the function returns a 1-D numpy array
+        beta = generate_beta_params(5, 3)
+        assert isinstance(beta, np.ndarray)
+        assert beta.ndim == 1
+        
+    
+    def test_length_array(self):
+        
+        # Test that the length of the returned array is correct
+        beta = generate_beta_params(5, 3)
+        assert len(beta) == 4
+        
+    
+    def test_value_error(self):
+        
+        # Test that the function raises a ValueError if q is less than 1 or greater than num_params
+        with pytest.raises(ValueError):
+            generate_beta_params(5, 0)
+        with pytest.raises(ValueError):
+            generate_beta_params(5, 6)
+
+
+class TestComputeCoxDirection(object):
+    
+    def test_sum_to_one(self):
+        q = np.array([0.3,0.5,0.2])
+        cox = compute_cox_direction(q,0)
+        
+        assert np.allclose(np.sum(cox,axis=1),np.ones(30))
+        
+
+class TestGetChoiceProbabilities(object):
+    
+
+    def test_2D_array(self):
+        # Test that the function returns a 2-D numpy array
+        U = np.array([[1, 2, 3], [4, 5, 6]])
+        P = get_choice_probabilities(U)
+        assert isinstance(P, np.ndarray)
+        assert P.ndim == 2
+    
+    
+    def test_shape(self):
+        # Test that the shape of the returned array is correct
+        U = np.array([[1, 2, 3], [4, 5, 6]])
+        P = get_choice_probabilities(U)
+        assert P.shape == (2, 3)
+    
+    
+    def test_sum_to_one(self):
+        # Test that the sum of the probabilities for each decision is 1
+        U = np.array([[1, 2, 3], [4, 5, 6]])
+        P = get_choice_probabilities(U)
+        assert np.allclose(np.sum(P, axis=1), np.ones(2))
+    
+    def test_calculate(self):
+        # Test that the probabilities are calculated correctly
+        U = np.array([[1, 2, 3], [4, 5, 6]])
+        P = get_choice_probabilities(U)
+        assert np.allclose(P, np.array([[0.09003057, 0.24472847, 0.66524096], [0.09003057, 0.24472847, 0.66524096]]))
+    
+    

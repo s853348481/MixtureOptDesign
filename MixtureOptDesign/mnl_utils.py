@@ -166,7 +166,7 @@ def get_choice_probabilities(U:np.ndarray) -> np.ndarray:
         2D array of size (J, S) representing the choice probabilities of each alternative for each decision.
     """
     expU = np.exp(U)
-    P = expU / np.sum(expU, axis=1)
+    P = expU / (np.sum(expU, axis=1)).reshape(expU.shape[0],1)
     return P
 
 
@@ -514,4 +514,34 @@ def generate_beta_params(num_params:int, q:int) -> np.ndarray:
         beta_params[i] -= beta_params[remove_idx]
     return np.concatenate([beta_params[:remove_idx], beta_params[remove_idx+1:]])
 
+
+def compute_cox_direction(q: np.ndarray, index: int, n_points: int = 30) -> np.ndarray:
+    """
+    Computes the Cox direction for a given index of q and a number of points.
+
+    Parameters
+    ----------
+    q : np.ndarray
+        A 1-dimensional ndarray of the mixture proportions.
+    index : int
+        The index of the proportion for which the Cox direction is calculated.
+    n_points : int, optional
+        The number of points to generate in the sequence, by default 30.
+
+    Returns
+    -------
+    np.ndarray
+        A 2-dimensional ndarray of shape (n_points, q.size) representing the Cox direction.
+
+    """
+    cox_direction = np.empty((n_points, q.size), dtype=float)
+    prop_sequence = np.linspace(0, 1, n_points)
+    delta  = prop_sequence - q[index]
+    for k in np.delete(np.arange(q.size), index):
+        if np.isclose(q[index], 1):
+            cox_direction[:, k] = (1 - prop_sequence)/(q.size-1)
+        else:
+            cox_direction[:, k] = (1 - delta/(1 - q[index])) * q[k]
+    cox_direction[:, index] = prop_sequence
+    return cox_direction
 
