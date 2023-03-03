@@ -51,6 +51,7 @@ def get_random_initial_design_mnl(n_ingredients: int, n_alternatives: int, n_cho
     design = random_values / np.sum(random_values, axis=0)
     return design
 
+
 def get_choice_probabilities_mnl(design:np.ndarray, beta:np.ndarray, order:int) -> np.ndarray:
     """
     Compute the choice probabilities for a multinomial logit (MNL) model.
@@ -76,6 +77,7 @@ def get_choice_probabilities_mnl(design:np.ndarray, beta:np.ndarray, order:int) 
     
     
     return P
+
 
 def get_parameters(q:int, order:int) -> Tuple[int, int, int]:
     """
@@ -112,6 +114,7 @@ def get_parameters(q:int, order:int) -> Tuple[int, int, int]:
     else:
         return (p1, p2, p3)
 
+
 def get_beta_coefficients(beta:np.ndarray, q:int, order:int) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Gets the beta coefficients from the beta vector for the different terms in the MNL model.
@@ -147,6 +150,7 @@ def get_beta_coefficients(beta:np.ndarray, q:int, order:int) -> Tuple[np.ndarray
 
     return beta_star, beta_2FI, beta_3FI
 
+
 def get_choice_probabilities(U:np.ndarray) -> np.ndarray:
     """
     Calculate choice probabilities from utilities using the MNL model.
@@ -164,6 +168,7 @@ def get_choice_probabilities(U:np.ndarray) -> np.ndarray:
     expU = np.exp(U)
     P = expU / np.sum(expU, axis=1)
     return P
+
 
 def multiply_arrays(*arg: np.ndarray) -> np.ndarray:
     """
@@ -238,6 +243,7 @@ def interaction_terms(arr: np.ndarray, interaction: int) -> np.ndarray:
     
     return np.stack(axis_results, axis=0)
 
+
 def get_utilities(design:np.ndarray, beta_star:np.ndarray, beta_2FI:np.ndarray, beta_3FI:np.ndarray, order:int) -> np.ndarray:
     """
     Calculates the utilities for each alternative and choice set in the design cube for MNL model.
@@ -293,6 +299,7 @@ def get_utilities(design:np.ndarray, beta_star:np.ndarray, beta_2FI:np.ndarray, 
             U += U_js_term3
 
     return U
+
 
 def get_model_matrix(design: np.ndarray, order: int) -> np.ndarray:
     """
@@ -374,7 +381,6 @@ def get_information_matrix_mnl(design: np.ndarray, order: int, beta:np.ndarray)-
     I = Xs @ (Ps - ps_ps) @ Xs.T
     return I
     
-
    
 def get_moment_matrix(q:int, order:int) -> np.ndarray:
     """
@@ -467,45 +473,6 @@ def get_i_optimality_mnl(design: np.ndarray, order: int, beta: np.ndarray) -> fl
     i_opt = np.trace(np.linalg.solve(information_matrix, moments_matrix))
     return i_opt  
 
-
-def hierarchical_clustering(data:np.ndarray, k:int)-> List[np.ndarray]:
-    """
-    Perform hierarchical clustering on a dataset and return the coordinates of the clusters.
-
-    Parameters
-    ----------
-    data : ndarray
-        An n x d array representing n data points in d dimensions.
-    k : int
-        The number of clusters to extract.
-
-    Returns
-    -------
-    coords : list of ndarrays
-        A list of k ndarrays representing the coordinates of the data points for each cluster.
-
-    """
-    # Compute the pairwise distances between all pairs of data points
-    distances = pdist(data)
-
-    # Perform hierarchical clustering on the pairwise distances
-    clusters = linkage(distances, method='ward')
-
-    # Extract the labels of each data point based on the number of clusters
-    labels = fcluster(clusters, k, criterion='maxclust')
-
-    # Extract the coordinates of the data points for each cluster
-    coords = [data[np.where(labels == i)[0], :] for i in range(1, k+1)]
-    
-    # Plot the dendrogram
-    # Plot the dendrogram
-    #plt.figure(figsize=(10, 5))
-    #dendrogram(Z, color_threshold=1.0)
-    #plt.xlabel('Data points')
-    #plt.ylabel('Distance')
-    #plt.show()
-
-    return coords
 
 def generate_beta_params(num_params:int, q:int) -> np.ndarray:
     """
