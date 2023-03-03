@@ -10,12 +10,12 @@ from typing import List
 
 def get_random_initial_design_mnl(n_ingredients: int, n_alternatives: int, n_choice_sets: int, seed: int = None) -> np.ndarray:
     """
-    Generate a random initial design for a multinomial logit model (MNL).
+    Generate a random initial design for a multinomial logit (MNL) model.
 
     Parameters:
     -----------
     n_ingredients : int
-        The number of ingredients (features) in the MNL model.
+        The number of ingredients in the MNL model.
     n_alternatives : int
         The number of alternatives in the MNL model.
     n_choice_sets : int
@@ -25,7 +25,7 @@ def get_random_initial_design_mnl(n_ingredients: int, n_alternatives: int, n_cho
 
     Returns:
     --------
-    my_array : numpy.ndarray, shape (n_ingredients, n_alternatives, n_choice_sets)
+    design : numpy.ndarray, shape (n_ingredients, n_alternatives, n_choice_sets)
         A 3-dimensional array of random values that can be used as an initial design for the MNL model.
 
     Notes:
@@ -48,8 +48,8 @@ def get_random_initial_design_mnl(n_ingredients: int, n_alternatives: int, n_cho
     if seed is not None:
         np.random.seed(seed)
     random_values = np.random.rand(n_ingredients, n_alternatives, n_choice_sets)
-    my_array = random_values / np.sum(random_values, axis=0)
-    return my_array
+    design = random_values / np.sum(random_values, axis=0)
+    return design
 
 def get_choice_probabilities_mnl(design:np.ndarray, beta:np.ndarray, order:int) -> np.ndarray:
     """
@@ -58,33 +58,35 @@ def get_choice_probabilities_mnl(design:np.ndarray, beta:np.ndarray, order:int) 
     Parameters
     ----------
     design : ndarray of shape (q, J, S)
-        The design matrix where q is the number of attributes, J is the number of alternatives, and S is the number of choice sets.
+        The design cube where q is the number of ingredients, J is the number of alternatives, and S is the number of choice sets.
         
     beta : ndarray of shape (p,)
         The vector of beta coefficients, where p is the number of parameters in the model.
     order : int
-        The maximum order of interactions to include in the model. Must be a positive integer value.
+        The maximum order of interactions to include in the model. Must be 1,2 or 3.
     
     Returns
     -------
     P : ndarray of shape (J, S)
-        The choice probabilities for the MNL model, where J is the number of ingredients and S is the number of choice sets.
+        The choice probabilities for the MNL model, where J is the number of alternatives and S is the number of choice sets.
     """
     beta_star, beta_2FI, beta_3FI = get_beta_coefficients(beta, order, design.shape[0])
     U = get_utilities(design, beta_star, beta_2FI, beta_3FI, order)
     P = get_choice_probabilities(U)
+    
+    
     return P
 
 def get_parameters(q:int, order:int) -> Tuple[int, int, int]:
     """
-    Calculate the total number of parameters needed for a given order of interactions in an MNL model.
+    Calculate the total number of parameters needed for a given order of interactions in a MNL model.
 
     Parameters
     ----------
     q : int
         The number of mixture ingredients.
     order : int
-        The maximum order of interactions to include in the model. Must be a positive integer value. Can be 1, 2 or 3.
+        The maximum order of interactions to include in the model. Must be 1, 2 or 3.
 
 
     Returns
@@ -96,6 +98,7 @@ def get_parameters(q:int, order:int) -> Tuple[int, int, int]:
     
     if order not in [1, 2, 3]:
         raise ValueError("Order must be 1, 2, or 3")
+    
     
     p1 = q - 1
     p2 = q * (q - 1)//2
@@ -111,7 +114,7 @@ def get_parameters(q:int, order:int) -> Tuple[int, int, int]:
 
 def get_beta_coefficients(beta:np.ndarray, q:int, order:int) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Extract the beta coefficients for the different terms in the MNL model.
+    Gets the beta coefficients from the beta vector for the different terms in the MNL model.
 
     Parameters
     ----------
@@ -120,7 +123,7 @@ def get_beta_coefficients(beta:np.ndarray, q:int, order:int) -> Tuple[np.ndarray
     q : int
         The number of ingredients.
     order : int
-        The maximum order of interactions to include in the model. Must be a positive integer value. Can be 1, 2 or 3.
+        The maximum order of interactions to include in the model. Must be 1, 2 or 3.
 
     Returns
     -------
@@ -132,15 +135,15 @@ def get_beta_coefficients(beta:np.ndarray, q:int, order:int) -> Tuple[np.ndarray
     
     p1, p2, p3 = get_parameters(q, order)
 
+
     if beta.size != p1 + p2 + p3:
         raise ValueError("Number of beta coefficients does not match the number of parameters for the given order and number of features.")
-
-    
 
 
     beta_star = beta[:p1] 
     beta_2FI = beta[p1:p1+p2] if order >= 2 else np.empty(0)
     beta_3FI = beta[p1 + p2:p1 + p2 +p3] if order == 3 else np.empty(0)
+
 
     return beta_star, beta_2FI, beta_3FI
 
@@ -191,16 +194,19 @@ def multiply_arrays(*arg: np.ndarray) -> np.ndarray:
     """
     if not arg:
         raise ValueError("No input arrays provided.")
-    arg = arg
+    
     result = 1
+    
     for i in range(0, len(arg)):
+        
         result *= arg[i]
+        
     return result
 
     
 def interaction_terms(arr: np.ndarray, interaction: int) -> np.ndarray:
     """
-    Compute element-wise multiplication of all pairs of axes in a numpy array.
+    Compute element-wise multiplication of all pair of combination of axes in a numpy array.
 
     Parameters:
     -----------
@@ -212,8 +218,8 @@ def interaction_terms(arr: np.ndarray, interaction: int) -> np.ndarray:
     Returns:
     --------
     np.ndarray
-        A new array where the last axis corresponds to the element-wise multiplication
-        of all pairs of axes.
+        A new array that corresponds to the element-wise multiplication
+        of all pair of combination of axes.
     """
     
     if not isinstance(interaction,int): 
@@ -234,13 +240,13 @@ def interaction_terms(arr: np.ndarray, interaction: int) -> np.ndarray:
 
 def get_utilities(design:np.ndarray, beta_star:np.ndarray, beta_2FI:np.ndarray, beta_3FI:np.ndarray, order:int) -> np.ndarray:
     """
-    Calculates the utilities for each alternative and choice set in the design matrix for MNL model.
+    Calculates the utilities for each alternative and choice set in the design cube for MNL model.
 
     Parameters
     ----------
     design : ndarray of shape (q, J, S)
-        The design matrix where q is the number of attributes, J is the number of alternatives, and S is the number of
-        scenarios.
+        The design cube where q is the number of ingredients, J is the number of alternatives, and S is the number of
+        choice sets.
     beta_star : ndarray of shape (q-1,)
         The coefficients for the linear term in the MNL model.
     beta_2FI : ndarray of shape (q * (q - 1)//2, )
@@ -248,12 +254,12 @@ def get_utilities(design:np.ndarray, beta_star:np.ndarray, beta_2FI:np.ndarray, 
     beta_3FI : ndarray of shape (q * (q - 1) * (q - 2)//6,)
         The coefficients for the three-factor interaction terms in the MNL model.
     order : int
-        The maximum order of interactions to include in the model. Must be a positive integer value. Can be 1, 2 or 3.
+        The maximum order of interactions to include in the model. Must be 1, 2 or 3.
 
     Returns
     -------
     numpy.ndarray
-         Array of shape (J, S) containing utility (matrix) of alternative j in choice set s
+         Array of shape (J, S) containing the utility (matrix) of alternative j in choice set s
 
     """
     try:
@@ -290,12 +296,12 @@ def get_utilities(design:np.ndarray, beta_star:np.ndarray, beta_2FI:np.ndarray, 
 
 def get_model_matrix(design: np.ndarray, order: int) -> np.ndarray:
     """
-    Constructs the model matrix for a multinomial logit model.
+    Constructs the model matrix for a multinomial logit(MNL) model.
 
     Parameters
     ----------
     design : numpy.ndarray
-        The design matrix of shape (q, J, S), where q is the number of ingredients,
+        The design cube of shape (q, J, S), where q is the number of ingredients,
         J is the number of alternatives, and S is the number of choice sets.
     order : int
         The maximum order of interaction terms to include in the model matrix. 
@@ -304,7 +310,7 @@ def get_model_matrix(design: np.ndarray, order: int) -> np.ndarray:
     Returns
     -------
     numpy.ndarray
-        The model matrix of shape (p, J, S), where p is the number of parameters
+        The model cube of shape (p, J, S), where p is the number of parameters
         in the model.
 
     Raises
@@ -338,10 +344,14 @@ def get_information_matrix_mnl(design: np.ndarray, order: int, beta:np.ndarray)-
     Get the information matrix for design and parameter beta.
     The function returns the sum of the information matrices of the S choice sets.
 
-    Parameters:
-    design (np.ndarray): The design cube of shape (N, J, S).
-    order (int): The polynomial order of the design cube.
-    beta (np.ndarray): The parameter vector of shape (M,).
+    Parameters
+    ----------
+    design : np.ndarray
+        The design cube of shape (N, J, S).
+    order : int 
+        The polynomial order of the design cube.
+    beta : np.ndarray 
+        The parameter vector of shape (M,).
 
     Returns:
     np.ndarray: The information matrix of shape (M, M).
@@ -364,9 +374,7 @@ def get_information_matrix_mnl(design: np.ndarray, order: int, beta:np.ndarray)-
     I = Xs @ (Ps - ps_ps) @ Xs.T
     return I
     
-#The symbol Γ in mathematics represents the gamma function. The gamma function is a generalization of the factorial function and it is defined for all complex numbers except for the non-positive integers.
-#The gamma function can be defined by the following integral:Γ(z) = ∫[0,∞] t^(z-1) * e^(-t) dt where z is a complex number.
-#For non-negative integers n, the gamma function satisfies the identity:Γ(n) = (n-1)!
+
    
 def get_moment_matrix(q:int, order:int) -> np.ndarray:
     """
@@ -375,14 +383,14 @@ def get_moment_matrix(q:int, order:int) -> np.ndarray:
     Parameters:
     -----------
     q : int
-        The number of alternatives (categories).
+        The number of mixture ingredients.
     order : int
         The order of the MNL model (1, 2, or 3).
         
     Returns:
     --------
     np.ndarray
-        The moment matrix of size parameters x parameters, where parameters is the number
+        The moment matrix of size (parameters, parameters), where parameters is the number
         of parameters in the MNL model.
     
     Raises:
@@ -498,5 +506,45 @@ def hierarchical_clustering(data:np.ndarray, k:int)-> List[np.ndarray]:
     #plt.show()
 
     return coords
+
+def generate_beta_params(num_params:int, q:int) -> np.ndarray:
+    """
+    Generate a set of beta parameters from a multinormal distribution.
+
+    Parameters
+    ----------
+    num_params : int
+        The number of parameters in the multinormal distribution.
+    q : int
+        The number of mixture ingredients.
+    
+    Returns
+    -------
+    numpy.ndarray
+        A vector of beta parameters from the multinormal distribution,
+        with the `q`-th parameter removed and all previous parameters subtracted
+        by thhis value.
+
+    Raises
+    ------
+    ValueError
+        If `q` is less than 1 or greater than `num_params`.
+
+    Examples
+    --------
+    >>> generate_beta_params(5, 3)
+    array([ 0.0594564 ,  0.2054975 , -0.07127753, -0.02105723])
+    
+    """
+    remove_idx = q - 1
+    if remove_idx < 0 or remove_idx >= num_params:
+        raise ValueError("q must be between 1 and the number of parameters")
+    mean = np.zeros(num_params)
+    cov = np.eye(num_params)
+    beta_params = np.random.multivariate_normal(mean, cov)
+    
+    for i in range(remove_idx):
+        beta_params[i] -= beta_params[remove_idx]
+    return np.concatenate([beta_params[:remove_idx], beta_params[remove_idx+1:]])
 
 
