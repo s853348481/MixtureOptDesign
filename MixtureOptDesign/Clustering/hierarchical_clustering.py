@@ -12,7 +12,7 @@ def hierarchical_clustering(data: np.ndarray, k: int) -> np.ndarray:
     data : ndarray
         An n x d array representing n data points in d dimensions.
     k : int
-        The number of clusters to extract.
+        The number of clusters to obtain.
 
     Returns
     -------

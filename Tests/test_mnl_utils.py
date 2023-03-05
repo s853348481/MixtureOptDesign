@@ -3,6 +3,7 @@ import pytest
 
 from MixtureOptDesign.mnl_utils import *
 from Tests.utils import check_mnl_design_sum
+from MixtureOptDesign.data.csv_util import read_csv_file
 
 
 @pytest.fixture
@@ -26,7 +27,27 @@ def arr():
         ])
         
         
-    return design   
+    return design
+
+@pytest.fixture
+def design():
+    design = np.array([[[0.3897873 , 0.6292498 , 0.7009263 , 0.4262842 , 0.24607377,
+         0.48413014, 0.2913878 , 0.72010463],
+        [0.4982357 , 0.00751996, 0.2505569 , 0.154967  , 0.5415304 ,
+         0.3639989 , 0.04235179, 0.3279013 ]],
+
+       [[0.2375383 , 0.1180457 , 0.2000333 , 0.2569634 , 0.74900543,
+         0.03588967, 0.3591402 , 0.00090224],
+        [0.2549352 , 0.63608026, 0.4460236 , 0.6877322 , 0.2635403 ,
+         0.3727396 , 0.44510098, 0.2701244 ]],
+
+       [[0.3726744 , 0.2527044 , 0.0990404 , 0.3167524 , 0.0049208 ,
+         0.47998018, 0.349472  , 0.27899313],
+        [0.2468291 , 0.35639978, 0.3034196 , 0.1573008 , 0.1949293 ,
+         0.2632615 , 0.51254723, 0.4019743 ]]])
+        
+        
+    return design 
       
 
 class TestInitialDesign(object):
@@ -252,7 +273,7 @@ class TestModelMatrix(object):
         
 class TestGetUtilities(object):
     
-    def test_order_1(self,arr):
+    def test_order_1(self,design):
 
             
             beta_star = np.array([1.0, 2.0])
@@ -260,14 +281,21 @@ class TestGetUtilities(object):
             beta_3FI = np.array([6.0])
             order = 1
             
-            expected_output = np.array([[0.5, 0.8, 1.1],
-                                        [1.4, 1.5, 1. ],
-                                        [0.9, 0. , 2. ]])
+            n_alternatives = 2
+            n_choice_sets = 8
+                       
+            expected_output = np.array([[0.8648639 , 0.8653412 , 1.1009929 , 0.940211  , 1.74408463,
+                                            0.55590948, 1.0096682 , 0.72190911],
+                                        [1.0081061 , 1.27968048, 1.1426041 , 1.5304314 , 1.068611  ,
+                                            1.1094781 , 0.93255375, 0.8681501 ]])
+            U = get_utilities(design, beta_star, beta_2FI, beta_3FI, order)
+            assert U.shape == (n_alternatives, n_choice_sets), f"Resulting shape is {U.shape}, expected {(n_alternatives, n_choice_sets)}"
             
-            assert np.allclose(get_utilities(arr, beta_star, beta_2FI, beta_3FI, order), expected_output)
+            
+            assert np.allclose(U, expected_output)
 
 
-    def test_order_2(self,arr):
+    def test_order_2(self,design):
         
             
             beta_star = np.array([1.0, 2.0])
@@ -275,12 +303,21 @@ class TestGetUtilities(object):
             beta_3FI = np.array([6.0])
             order = 2
             
-            expected_output = np.array([[1.54, 2.13, 2.42],
-                                        [2.41, 2.25, 2.04],
-                                        [1.77, 0.  , 2.  ]])
+            n_alternatives = 2
+            n_choice_sets = 8
             
-            assert np.allclose(get_utilities(arr, beta_star, beta_2FI, beta_3FI, order), expected_output)
-    def test_order_3(self,arr):
+            expected_output = np.array([[2.16630935, 1.87339201, 1.89835568, 2.21590435, 2.32028845,
+                                            1.62365843, 2.35849015, 1.5287338 ],
+                                        [2.19570296, 2.43824515, 2.45862398, 2.48856865, 2.17585545,
+                                            2.39045603, 2.21661176, 2.20401944]])
+                                                
+            U = get_utilities(design, beta_star, beta_2FI, beta_3FI, order)
+            assert U.shape == (n_alternatives, n_choice_sets), f"Resulting shape is {U.shape}, expected {(n_alternatives, n_choice_sets)}"
+            
+            assert np.allclose(U, expected_output)
+            
+            
+    def test_order_3(self,design):
         
             
             beta_star = np.array([1.0, 2.0])
@@ -288,11 +325,18 @@ class TestGetUtilities(object):
             beta_3FI = np.array([6.0])
             order = 3
             
-            expected_output = np.array([[1.708, 2.49 , 2.852],
-                                        [2.65 , 2.25 , 2.328],
-                                        [1.938, 0.   , 2.   ]])
+            n_alternatives = 2
+            n_choice_sets = 8
             
-            assert np.allclose(get_utilities(arr, beta_star, beta_2FI, beta_3FI, order), expected_output)
+            expected_output = np.array([[2.58037779, 2.09864331, 2.06499147, 2.63226691, 2.33117192,
+                                            1.72373586, 2.7973532 , 1.53090897],
+                                        [2.57192328, 2.45870234, 2.86552529, 2.68974214, 2.50968767,
+                                            2.81907778, 2.33255501, 2.63127379]])
+            
+            U = get_utilities(design, beta_star, beta_2FI, beta_3FI, order)
+            assert U.shape == (n_alternatives, n_choice_sets), f"Resulting shape is {U.shape}, expected {(n_alternatives, n_choice_sets)}"
+            
+            assert np.allclose(U, expected_output)
             
 class TestGenerateBetaParam(object):
     def test_1D_array(self):
@@ -350,12 +394,39 @@ class TestGetChoiceProbabilities(object):
         # Test that the sum of the probabilities for each decision is 1
         U = np.array([[1, 2, 3], [4, 5, 6]])
         P = get_choice_probabilities(U)
-        assert np.allclose(np.sum(P, axis=1), np.ones(2))
+        assert np.allclose(np.sum(P, axis=0), np.ones(3))
     
     def test_calculate(self):
         # Test that the probabilities are calculated correctly
         U = np.array([[1, 2, 3], [4, 5, 6]])
         P = get_choice_probabilities(U)
-        assert np.allclose(P, np.array([[0.09003057, 0.24472847, 0.66524096], [0.09003057, 0.24472847, 0.66524096]]))
+        assert np.allclose(P, np.array([[0.04742587, 0.04742587, 0.04742587],[0.95257413, 0.95257413, 0.95257413]]))
     
     
+class TestIOptimality(object):
+    
+    def test_design_01(self):
+        
+        design = read_csv_file("Tests/data/design_01.csv")
+        beta = np.array( (1.36, 1.57, 2.47, -0.43, 0.50, 1.09))
+        I_opt_value = get_i_optimality_mnl(design,3,beta)
+        expected_value = 1.193834
+        assert np.isclose(I_opt_value, expected_value, rtol=1e-2)
+    
+    def test_design_03(self):
+        
+        design = read_csv_file("Tests/data/design_03.csv")
+        
+        beta = np.array( (1.36, 1.57, 2.47, -0.43, 0.50, 1.09))
+        I_opt_value = get_i_optimality_mnl(design,3,beta)
+        expected_value = 0.5029075
+        assert np.isclose(I_opt_value, expected_value, rtol=1e-2)
+        
+    def test_design_06(self):
+        
+        design = read_csv_file("Tests/data/design_06.csv")
+        
+        beta = np.array((0.86, 0.21, 3.07, 2.34, 3.24, -20.59))
+        I_opt_value = get_i_optimality_mnl(design,3,beta)
+        expected_value = 0.5029075
+        assert np.isclose(I_opt_value, expected_value, rtol=1e-2)

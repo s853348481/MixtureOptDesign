@@ -5,7 +5,7 @@ import itertools
 from scipy.special import factorial
 from scipy.spatial.distance import pdist
 from scipy.cluster.hierarchy import linkage, fcluster
-from typing import List
+
 
 
 def get_random_initial_design_mnl(n_ingredients: int, n_alternatives: int, n_choice_sets: int, seed: int = None) -> np.ndarray:
@@ -69,7 +69,7 @@ def get_choice_probabilities_mnl(design:np.ndarray, beta:np.ndarray, order:int) 
     Returns
     -------
     P : ndarray of shape (J, S)
-        The choice probabilities for the MNL model, where J is the number of alternatives and S is the number of choice sets.
+        The choice probabilities of the MNL model, where J is the number of alternatives and S is the number of choice sets.
     """
     beta_star, beta_2FI, beta_3FI = get_beta_coefficients(beta, order, design.shape[0])
     U = get_utilities(design, beta_star, beta_2FI, beta_3FI, order)
@@ -117,7 +117,7 @@ def get_parameters(q:int, order:int) -> Tuple[int, int, int]:
 
 def get_beta_coefficients(beta:np.ndarray, q:int, order:int) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Gets the beta coefficients from the beta vector for the different terms in the MNL model.
+    Gets the beta coefficients for the different terms in the MNL model.
 
     Parameters
     ----------
@@ -140,7 +140,7 @@ def get_beta_coefficients(beta:np.ndarray, q:int, order:int) -> Tuple[np.ndarray
 
 
     if beta.size != p1 + p2 + p3:
-        raise ValueError("Number of beta coefficients does not match the number of parameters for the given order and number of features.")
+        raise ValueError("Number of beta coefficients does not match the number of parameters for the given order and number of ingredients.")
 
 
     beta_star = beta[:p1] 
@@ -166,7 +166,7 @@ def get_choice_probabilities(U:np.ndarray) -> np.ndarray:
         2D array of size (J, S) representing the choice probabilities of each alternative for each decision.
     """
     expU = np.exp(U)
-    P = expU / (np.sum(expU, axis=1)).reshape(expU.shape[0],1)
+    P = expU / np.sum(expU, axis=0)
     return P
 
 
@@ -308,7 +308,7 @@ def get_model_matrix(design: np.ndarray, order: int) -> np.ndarray:
     Parameters
     ----------
     design : numpy.ndarray
-        The design cube of shape (q, J, S), where q is the number of ingredients,
+        The design cube of shape (p, J, S), where p is the number of parameters in the model,
         J is the number of alternatives, and S is the number of choice sets.
     order : int
         The maximum order of interaction terms to include in the model matrix. 
@@ -354,7 +354,8 @@ def get_information_matrix_mnl(design: np.ndarray, order: int, beta:np.ndarray)-
     Parameters
     ----------
     design : np.ndarray
-        The design cube of shape (N, J, S).
+        The design cube of shape (q, J, S), where q is the number of ingredients,
+        J is the number of alternatives, and S is the number of choice sets.
     order : int 
         The polynomial order of the design cube.
     beta : np.ndarray 
@@ -368,18 +369,22 @@ def get_information_matrix_mnl(design: np.ndarray, order: int, beta:np.ndarray)-
     
     Xs = get_model_matrix(design,order)
     
-    #sum over all choice sets
-    Xs =  Xs.sum(axis=2)
+    param, J, S = Xs.shape
     
-    ps = get_choice_probabilities_mnl(design,beta,order)
+    P = get_choice_probabilities_mnl(design,beta,order)
     
-    ps_ps = np.dot(ps,ps.T)
     
-    Ps = np.diag(ps)
     
-    # matrix multiplication to calculate the information matrix
-    I = Xs @ (Ps - ps_ps) @ Xs.T
-    return I
+    information_matrix = 0
+    for s in range(S):
+        p_s = P[:, s]
+        I_s = np.dot(Xs[:param, :, s], np.dot(np.diag(p_s) - np.outer(p_s, p_s.T), Xs[:param, :, s].T))
+        information_matrix += I_s
+    
+    
+    
+    
+    return information_matrix
     
    
 def get_moment_matrix(q:int, order:int) -> np.ndarray:
@@ -453,7 +458,8 @@ def get_i_optimality_mnl(design: np.ndarray, order: int, beta: np.ndarray) -> fl
     Parameters
     ----------
     design : numpy.ndarray
-        The design matrix of shape (n, p), where n is the number of observations and p is the number of predictors.
+        The design cube of shape (q, J, S), where q is the number of ingredients,
+        J is the number of alternatives, and S is the number of choice sets.
     order : int
         The maximum order of interaction effects to include in the model.
     beta : numpy.ndarray
@@ -466,10 +472,10 @@ def get_i_optimality_mnl(design: np.ndarray, order: int, beta: np.ndarray) -> fl
     """
 
     q = design.shape[0]
-    information_matrix = get_information_matrix_mnl(design, beta, order)
+    information_matrix = get_information_matrix_mnl(design, order, beta)
     moments_matrix = get_moment_matrix(q, order)
     
-    #sum of the diagonal elements of the matrix product of the inverse of the printed information matrix and the printed moments matrix. This is equivalent to computing the trace of the matrix product of these two matrices.
+    #The sum of all  diagonal elements of the product of the inverse information producct and moment matrix. This is the same as computing the trace of the matrix product for these two matrices.
     i_opt = np.trace(np.linalg.solve(information_matrix, moments_matrix))
     return i_opt  
 
@@ -517,12 +523,12 @@ def generate_beta_params(num_params:int, q:int) -> np.ndarray:
 
 def compute_cox_direction(q: np.ndarray, index: int, n_points: int = 30) -> np.ndarray:
     """
-    Computes the Cox direction for a given index of q and a number of points.
+    Computes the Cox direction for a given index of q and number of points.
 
     Parameters
     ----------
     q : np.ndarray
-        A 1-dimensional ndarray of the mixture proportions.
+        A 1-dimensional ndarray of the mixture proportions. Must sum up to one
     index : int
         The index of the proportion for which the Cox direction is calculated.
     n_points : int, optional
@@ -531,7 +537,7 @@ def compute_cox_direction(q: np.ndarray, index: int, n_points: int = 30) -> np.n
     Returns
     -------
     np.ndarray
-        A 2-dimensional ndarray of shape (n_points, q.size) representing the Cox direction.
+        A 2-dimensional ndarray of shape (n_points, q.size) representing the Cox direction. Dimension 2 must sum up to one
 
     """
     cox_direction = np.empty((n_points, q.size), dtype=float)
