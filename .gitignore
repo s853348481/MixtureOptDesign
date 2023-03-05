@@ -1,0 +1,22 @@
+# Byte-compiled
+
+__pycache__/
+*.pyc
+
+
+# Jupyter Notebook
+
+.ipynb_checkpoints
+
+# Unit test
+
+.pytest_cache/
+
+# Environments
+
+env/
+.vscode
+
+setup.py
+
+
