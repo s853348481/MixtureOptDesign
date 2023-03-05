@@ -540,14 +540,15 @@ def compute_cox_direction(q: np.ndarray, index: int, n_points: int = 30) -> np.n
         A 2-dimensional ndarray of shape (n_points, q.size) representing the Cox direction. Dimension 2 must sum up to one
 
     """
-    cox_direction = np.empty((n_points, q.size), dtype=float)
+    cox_direction = np.empty((n_points, q.size))
     prop_sequence = np.linspace(0, 1, n_points)
-    delta  = prop_sequence - q[index]
-    for k in np.delete(np.arange(q.size), index):
-        if np.isclose(q[index], 1):
-            cox_direction[:, k] = (1 - prop_sequence)/(q.size-1)
-        else:
-            cox_direction[:, k] = (1 - delta/(1 - q[index])) * q[k]
+    qi = q[index]
+    delta = prop_sequence - qi
+    k_mask = np.arange(q.size) != index
+    k_values = q[k_mask]
+    if np.isclose(qi, 1):
+        cox_direction[:, k_mask] = (1 - prop_sequence[:, np.newaxis]) / (q.size - 1)
+    else:
+        cox_direction[:, k_mask] = (1 - delta[:, np.newaxis] / (1 - qi)) * k_values
     cox_direction[:, index] = prop_sequence
     return cox_direction
-
