@@ -3,8 +3,7 @@ from typing import Tuple
 import numpy as np
 import itertools
 from scipy.special import factorial
-from scipy.spatial.distance import pdist
-from scipy.cluster.hierarchy import linkage, fcluster
+from numpy.linalg import det
 
 
 
@@ -554,12 +553,37 @@ def compute_cox_direction(q: np.ndarray, index: int, n_points: int = 30) -> np.n
     return cox_direction
 
 
-import numpy as np
-from numpy.linalg import det
-from scipy import integrate
 
 def get_d_optimality(design, order, beta):
     info_matrix = get_information_matrix_mnl(design,order,beta)
     d_value = np.log(det(info_matrix)**(-1/beta.size))
-    
     return d_value
+
+
+
+
+
+def transform_varcov_matrix(id_matrix: np.ndarray, q: int) -> np.ndarray:
+    """
+    Transform a variance-covariance matrix by adding a constant value to the 
+    diagonal of a subset of rows and columns.
+
+    Parameters
+    ----------
+    id_matrix : numpy.ndarray
+        The identity matrix to be transformed.
+    q : int
+        The number of ingredients to add a constant value to the diagonal.
+
+    Returns
+    -------
+    numpy.ndarray
+        The transformed variance-covariance matrix.
+    """
+    num_param = id_matrix.shape[0]
+    Sigma_prime = np.zeros((num_param-1, num_param-1))
+
+    Sigma_prime[0:q-1, 0:q-1] = id_matrix[0:q-1, 0:q-1] + id_matrix[q-1, q-1]
+    Sigma_prime[q-1:, q-1:] = id_matrix[q:, q:]
+    
+    return Sigma_prime
