@@ -552,3 +552,14 @@ def compute_cox_direction(q: np.ndarray, index: int, n_points: int = 30) -> np.n
         cox_direction[:, k_mask] = (1 - delta[:, np.newaxis] / (1 - qi)) * k_values
     cox_direction[:, index] = prop_sequence
     return cox_direction
+
+
+import numpy as np
+from numpy.linalg import det
+from scipy import integrate
+
+def get_d_optimality(design, order, beta):
+    info_matrix = get_information_matrix_mnl(design,order,beta)
+    d_value = np.log(det(info_matrix)**(-1/beta.size))
+    
+    return d_value
