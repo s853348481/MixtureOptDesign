@@ -294,7 +294,7 @@ def get_utilities(design:np.ndarray, beta_star:np.ndarray, beta_2FI:np.ndarray, 
         # 0RDER-3 X_IJS*X_KJS*XLJS - 3FI terms
         if order == 3:
             x_js_3 = interaction_terms(design,3)
-            U_js_term3= np.sum(beta_2FI.reshape(beta_2FI.size,1,1)*x_js_3, axis=0)
+            U_js_term3= np.sum(beta_3FI.reshape(beta_3FI.size,1,1)*x_js_3, axis=0)
             U += U_js_term3
 
     return U
@@ -512,7 +512,7 @@ def generate_beta_params(num_params:int, q:int) -> np.ndarray:
     if remove_idx < 0 or remove_idx >= num_params:
         raise ValueError("q must be between 1 and the number of parameters")
     mean = np.zeros(num_params)
-    cov = np.eye(num_params)
+    cov = np.identity(num_params)
     beta_params = np.random.multivariate_normal(mean, cov)
     
     for i in range(remove_idx):
