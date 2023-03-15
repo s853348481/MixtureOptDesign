@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from MixtureOptDesign.mnl_utils import *
+from MixtureOptDesign.MNL.mnl_utils import *
 from Tests.utils import check_mnl_design_sum
 from MixtureOptDesign.data.csv_util import read_csv_file
 
