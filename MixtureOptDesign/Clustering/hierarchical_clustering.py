@@ -3,7 +3,7 @@ from scipy.spatial.distance import pdist
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 import matplotlib.pyplot as plt
 from MixtureOptDesign.MNL.mnl_utils import get_i_optimality_mnl
-
+from sklearn.cluster import AgglomerativeClustering
 
 
 
@@ -112,18 +112,20 @@ class Cluster:
 
         Parameters
         ----------
-        start : int
-            The minimum value of k to consider.
-        end : int
-            The maximum value of k to consider.
+        beta : numpy.ndarray of shape (p,)
+                A 1-dimensional array of p numbers of beta coefficients for the model.
+            
+        order : int
+                The maximum order of interactions to include in the model. Must be 1, 2 or 3.
+            
 
         Returns
         -------
-        None
+        plot
 
         Notes
         -----
-        The function computes the distortion for each value of k between start and end and plots it.
+        The function computes the I optimality for each value of k between start (number of parameters) and end (unique point) and plots it.
         """
         # Compute the I-optimality criterion for each value of k
         i_opt_values = []
@@ -153,9 +155,8 @@ class Cluster:
         plt.title('Elbow curve')
         plt.show()
     
-   
 
-    def get_unique_rows(self,arr:np.ndarray, tolerance=1e-9):
+    def get_unique_rows(self,arr:np.ndarray, tolerance=1e-9)->int:
         """
         Get the unique rows of a 2D numpy array based on a specified tolerance level for element-wise equality comparisons.
 
@@ -234,7 +235,7 @@ class KMeansCluster(Cluster):
         # Return the cluster centroids
         return self.clusters
 
-from sklearn.cluster import AgglomerativeClustering
+
 
 class AgglomerativeCluster(Cluster):
     def fit(self, k:int) -> np.ndarray:
