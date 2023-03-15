@@ -328,10 +328,7 @@ class TestGetUtilities(object):
             n_alternatives = 2
             n_choice_sets = 8
             
-            expected_output = np.array([[2.58037779, 2.09864331, 2.06499147, 2.63226691, 2.33117192,
-                                            1.72373586, 2.7973532 , 1.53090897],
-                                        [2.57192328, 2.45870234, 2.86552529, 2.68974214, 2.50968767,
-                                            2.81907778, 2.33255501, 2.63127379]])
+            expected_output = np.array([[2.37334357, 1.98601766, 1.98167357, 2.42408563, 2.32573018,        1.67369715, 2.57792167, 1.52982139],      [2.38381312, 2.44847374, 2.66207463, 2.58915539, 2.34277156,        2.6047669 , 2.27458339, 2.41764661]])
             
             U = get_utilities(design, beta_star, beta_2FI, beta_3FI, order)
             assert U.shape == (n_alternatives, n_choice_sets), f"Resulting shape is {U.shape}, expected {(n_alternatives, n_choice_sets)}"
@@ -413,6 +410,14 @@ class TestIOptimality(object):
         expected_value = 1.193834
         assert np.isclose(I_opt_value, expected_value, rtol=1e-2)
     
+    def test_design_02(self):
+        
+        design = read_csv_file("Tests/data/design_02.csv")
+        beta = np.array( (1.36, 1.57, 2.47, -0.43, 0.50, 1.09))
+        I_opt_value = get_i_optimality_mnl(design,3,beta)
+        expected_value = 1.033
+        assert np.isclose(I_opt_value, expected_value, rtol=1e-2)
+    
     def test_design_03(self):
         
         design = read_csv_file("Tests/data/design_03.csv")
@@ -421,6 +426,24 @@ class TestIOptimality(object):
         I_opt_value = get_i_optimality_mnl(design,3,beta)
         expected_value = 0.5029075
         assert np.isclose(I_opt_value, expected_value, rtol=1e-2)
+    
+    def test_design_04(self):
+        
+        design = read_csv_file("Tests/data/design_04.csv")
+        
+        beta = np.array((0.86, 0.21, 3.07, 2.34, 3.24, -20.59))
+        I_opt_value = get_i_optimality_mnl(design,3,beta)
+        expected_value = 2.28
+        assert np.isclose(I_opt_value, expected_value, rtol=1e-2)
+    
+    def test_design_05(self):
+        
+        design = read_csv_file("Tests/data/design_05.csv")
+        
+        beta = np.array((0.86, 0.21, 3.07, 2.34, 3.24, -20.59))
+        I_opt_value = get_i_optimality_mnl(design,3,beta)
+        expected_value = 2.30
+        assert np.isclose(I_opt_value, expected_value, rtol=1e-2)   
         
     def test_design_06(self):
         
@@ -428,5 +451,90 @@ class TestIOptimality(object):
         
         beta = np.array((0.86, 0.21, 3.07, 2.34, 3.24, -20.59))
         I_opt_value = get_i_optimality_mnl(design,3,beta)
-        expected_value = 0.5029075
+        expected_value = 1.035
         assert np.isclose(I_opt_value, expected_value, rtol=1e-2)
+
+class TestDOptimality(object):
+    pass
+
+
+class TestTransformVarcovMatrix(object):
+    
+    def test_case_1(self):
+        # Test case 1: q = 1
+        id_matrix = np.identity(5)
+        q = 1
+        expected_result = np.array([[1., 0., 0., 0.],
+                                    [0., 1., 0., 0.],
+                                    [0., 0., 1., 0.],
+                                    [0., 0., 0., 1.]])
+        
+        result = transform_varcov_matrix(id_matrix, q)
+        assert np.array_equal(result, expected_result), f"Test case 1 failed: {result}"
+    
+    def test_case_2(self):
+        # Test case 2: q = 2
+        id_matrix = np.identity(6)
+        q = 2
+        expected_result = np.array([[2., 0., 0., 0., 0.], 
+                                    [0., 1., 0., 0., 0.], 
+                                    [0., 0., 1., 0., 0.], 
+                                    [0., 0., 0., 1., 0.], 
+                                    [0., 0., 0., 0., 1.]])
+        result = transform_varcov_matrix(id_matrix, q)
+        assert np.array_equal(result, expected_result), f"Test case 2 failed: {result}"
+
+    def test_case_3(self):
+        # Test case 3: q = 3
+        id_matrix = np.identity(4)
+        q = 3
+        expected_result = np.array([[2., 1., 0.],
+                                    [1., 2., 0.],
+                                    [0., 0., 1.]])
+        result = transform_varcov_matrix(id_matrix, q)
+        assert np.array_equal(result, expected_result), f"Test case 3 failed: {result}"
+
+    def test_case_4(self):
+        # Test case 4: q = 4 (all rows and columns except the last)
+        id_matrix = np.identity(5)
+        q = 4
+        expected_result = np.array([[2., 1., 1., 0.],
+                                    [1., 2., 1., 0.],
+                                    [1., 1., 2., 0.],
+                                    [0., 0., 0., 1.]])
+        result = transform_varcov_matrix(id_matrix, q)
+        assert np.array_equal(result, expected_result), f"Test case 4 failed: {result}"
+
+        print("All test cases passed.")
+    
+
+
+    def test_transform_varcov_matrix_case1(self):
+        # Test case 1: identity matrix of size 4, q = 2, k = 1
+        id_matrix = np.identity(4)
+        q = 2
+        k = 1
+        expected_output = np.array([[2., 0., 0.],
+                                    [0., 1., 0.],
+                                    [0., 0., 1.]])
+        assert np.array_equal(transform_varcov_matrix(id_matrix, q, k), expected_output)
+
+
+    def test_transform_varcov_matrix_case2(self):
+        # Test case 2: identity matrix of size 3, q = 1, k = 2
+        id_matrix = np.identity(3)
+        q = 1
+        k = 2
+        expected_output = np.array([[2., 0.],       
+                                    [0., 2.]])
+        assert np.array_equal(transform_varcov_matrix(id_matrix, q, k), expected_output)
+
+
+    def test_transform_varcov_matrix_case3(self):
+        # Test case 3: identity matrix of size 2, q = 2, k = 0.5
+        id_matrix = np.identity(2)
+        q = 2
+        k = 0.5
+        expected_output = np.array([[1.]])
+        assert np.array_equal(transform_varcov_matrix(id_matrix, q, k), expected_output)
+

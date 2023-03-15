@@ -554,16 +554,14 @@ def compute_cox_direction(q: np.ndarray, index: int, n_points: int = 30) -> np.n
 
 
 
-def get_d_optimality(design, order, beta):
+def get_d_optimality(design:np.ndarray, order:int, beta:np.ndarray)-> float:
     info_matrix = get_information_matrix_mnl(design,order,beta)
     d_value = np.log(det(info_matrix)**(-1/beta.size))
     return d_value
 
 
 
-
-
-def transform_varcov_matrix(id_matrix: np.ndarray, q: int) -> np.ndarray:
+def transform_varcov_matrix(id_matrix: np.ndarray, q: int, k = 1) -> np.ndarray:
     """
     Transform a variance-covariance matrix by adding a constant value to the 
     diagonal of a subset of rows and columns.
@@ -574,6 +572,8 @@ def transform_varcov_matrix(id_matrix: np.ndarray, q: int) -> np.ndarray:
         The identity matrix to be transformed.
     q : int
         The number of ingredients to add a constant value to the diagonal.
+    k :  [optional, default 1] int 
+        positive scalar that controls the level of uncertainty
 
     Returns
     -------
@@ -586,4 +586,4 @@ def transform_varcov_matrix(id_matrix: np.ndarray, q: int) -> np.ndarray:
     Sigma_prime[0:q-1, 0:q-1] = id_matrix[0:q-1, 0:q-1] + id_matrix[q-1, q-1]
     Sigma_prime[q-1:, q-1:] = id_matrix[q:, q:]
     
-    return Sigma_prime
+    return Sigma_prime *k
