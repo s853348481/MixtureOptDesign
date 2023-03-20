@@ -3,8 +3,7 @@ from typing import Tuple
 import numpy as np
 import itertools
 from scipy.special import factorial
-from scipy.spatial.distance import pdist
-from scipy.cluster.hierarchy import linkage, fcluster
+from numpy.linalg import det
 
 
 
@@ -295,7 +294,7 @@ def get_utilities(design:np.ndarray, beta_star:np.ndarray, beta_2FI:np.ndarray, 
         # 0RDER-3 X_IJS*X_KJS*XLJS - 3FI terms
         if order == 3:
             x_js_3 = interaction_terms(design,3)
-            U_js_term3= np.sum(beta_2FI.reshape(beta_2FI.size,1,1)*x_js_3, axis=0)
+            U_js_term3= np.sum(beta_3FI.reshape(beta_3FI.size,1,1)*x_js_3, axis=0)
             U += U_js_term3
 
     return U
@@ -513,7 +512,7 @@ def generate_beta_params(num_params:int, q:int) -> np.ndarray:
     if remove_idx < 0 or remove_idx >= num_params:
         raise ValueError("q must be between 1 and the number of parameters")
     mean = np.zeros(num_params)
-    cov = np.eye(num_params)
+    cov = np.identity(num_params)
     beta_params = np.random.multivariate_normal(mean, cov)
     
     for i in range(remove_idx):
@@ -554,12 +553,37 @@ def compute_cox_direction(q: np.ndarray, index: int, n_points: int = 30) -> np.n
     return cox_direction
 
 
-import numpy as np
-from numpy.linalg import det
-from scipy import integrate
 
-def get_d_optimality(design, order, beta):
+def get_d_optimality(design:np.ndarray, order:int, beta:np.ndarray)-> float:
     info_matrix = get_information_matrix_mnl(design,order,beta)
     d_value = np.log(det(info_matrix)**(-1/beta.size))
-    
     return d_value
+
+
+
+def transform_varcov_matrix(id_matrix: np.ndarray, q: int, k = 1) -> np.ndarray:
+    """
+    Transform a variance-covariance matrix by adding a constant value to the 
+    diagonal of a subset of rows and columns.
+
+    Parameters
+    ----------
+    id_matrix : numpy.ndarray
+        The identity matrix to be transformed.
+    q : int
+        The number of ingredients to add a constant value to the diagonal.
+    k :  [optional, default 1] int 
+        positive scalar that controls the level of uncertainty
+
+    Returns
+    -------
+    numpy.ndarray
+        The transformed variance-covariance matrix.
+    """
+    num_param = id_matrix.shape[0]
+    Sigma_prime = np.zeros((num_param-1, num_param-1))
+
+    Sigma_prime[0:q-1, 0:q-1] = id_matrix[0:q-1, 0:q-1] + id_matrix[q-1, q-1]
+    Sigma_prime[q-1:, q-1:] = id_matrix[q:, q:]
+    
+    return Sigma_prime *k

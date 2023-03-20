@@ -1,5 +1,5 @@
 import numpy as np
-from ..mnl_utils import get_i_optimality_mnl,generate_beta_params, get_parameters, compute_cox_direction
+from ..MNL.mnl_utils import get_i_optimality_mnl,generate_beta_params, get_parameters, compute_cox_direction
 
 class CoordinateExchangeIOptimal:
     def __init__(self, design: np.ndarray, order:int, n_points: int, iteration: int = 10):
