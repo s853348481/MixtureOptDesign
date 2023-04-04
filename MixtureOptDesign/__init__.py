@@ -5,8 +5,9 @@ from .MNL.mnl_utils import *
 from . import MNLVis
 from .Clustering.hierarchical_clustering import hierarchical_clustering,replace_with_clusters,HierarchicalCluster,KMeansCluster,AgglomerativeCluster
 from .CoordinateExchange.coordinate_exchange import CoordinateExchangeIOptimal,ClusteredCoordinateExchangeIOptimal
-from .HaltonDraws.halton_draws import CreateHaltonDraws, QMCHaltonDraws
+from .HaltonDraws.halton_draws import HaltonDraws
 
+from .HaltonDraws.qmc_halton_draws import QMCHaltonDraws
 
 
 

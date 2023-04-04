@@ -1,5 +1,7 @@
-from halton_draws import *
+from .halton_draws import HaltonDraws
 from scipy.stats import qmc
+from scipy.stats import norm
+import numpy as np
 
 class QMCHaltonDraws(HaltonDraws):
     """
