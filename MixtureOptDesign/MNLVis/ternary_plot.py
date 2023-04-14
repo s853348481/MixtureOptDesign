@@ -48,39 +48,41 @@ def plot_ternary_design(design):
     check_mnl_design_sum(design)
     
     # Flatten design points
-    x = design[0].flatten()
-    y = design[1].flatten()
-    z = design[2].flatten()
+    ingredient1 = design[0].flatten()
+    ingredient2 = design[1].flatten()
+    ingredient3 = design[2].flatten()
 
     # Create figure object
     fig = go.Figure()
 
     # Define scatter trace for each design point
     fig.add_trace(go.Scatterternary(
-        a=z,
-        b=x,
-        c=y,
+        a=ingredient2,
+        b=ingredient1,
+        c=ingredient3,
         mode='markers',
         marker=dict(
             symbol='circle',
             size=7,
             color='blue',
         ),
-        name='Design Points',
+         name='Design Points',
+        text=[f'Ing1: {q1:.2f}, Ing2: {q2:.2f}, Ing3: {q3:.2f}' for q1, q2, q3 in zip(ingredient1, ingredient2, ingredient3)],  # Add custom hover text
+        hoverinfo='text',  # Show only custom hover text
         cliponaxis=False,  # Make points fully visible
     ))
-
+      
     # Define layout
     fig.update_layout(
         ternary=dict(
             sum=1,
-            aaxis_title='Ingredient 1',
-            baxis_title='Ingredient 2',
+            aaxis_title='Ingredient 2',
+            baxis_title='Ingredient 1',
             caxis_title='Ingredient 3'
         ),
         showlegend=True,
         width=600,
         height=600
     )
-
-    return fig
+   # Show the plot
+    return fig.show()
