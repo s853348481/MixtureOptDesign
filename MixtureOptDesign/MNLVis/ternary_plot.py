@@ -85,4 +85,4 @@ def plot_ternary_design(design):
         height=600
     )
    # Show the plot
-    return fig.show()
+    return fig

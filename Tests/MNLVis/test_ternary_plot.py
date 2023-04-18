@@ -28,9 +28,9 @@ def test_plot_ternary_design_trace_data(design_data):
     fig = plot_ternary_design(design_data)
     trace = fig.data[0]
     assert isinstance(trace, go.Scatterternary)
-    assert np.array_equal(trace.a, design_data[2].flatten())
+    assert np.array_equal(trace.a, design_data[1].flatten())
     assert np.array_equal(trace.b, design_data[0].flatten())
-    assert np.array_equal(trace.c, design_data[1].flatten())
+    assert np.array_equal(trace.c, design_data[2].flatten())
 
 def test_plot_ternary_design_valid_input():
     # Valid input
