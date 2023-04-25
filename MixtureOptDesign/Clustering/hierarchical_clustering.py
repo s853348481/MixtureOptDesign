@@ -4,6 +4,9 @@ from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 import matplotlib.pyplot as plt
 from MixtureOptDesign.MNL.mnl_utils import get_i_optimality_mnl
 from sklearn.cluster import AgglomerativeClustering
+from typing import List
+import pandas as pd
+
 
 
 
@@ -85,16 +88,14 @@ def replace_with_clusters(data: np.ndarray, labels: np.ndarray, clusters: np.nda
 
 class Cluster:
     def __init__(self, design:np.ndarray):
-        x = design[0].flatten()
-        y = design[1].flatten()
-        z = design[2].flatten()
-        # Stack the x, y, and z arrays vertically
-        self.design_ = design
-        data = np.vstack((x, y, z)).T
-        self.data = data
+        self._q, self._j, self._s = design.shape
+        self._design = design
+        self._design_2d = self._design.reshape(self._q, self._j * self._s).T
+        
         self.labels = None
         self.clusters = None
 
+    #abstract method
     def fit(self, k:int)-> np.ndarray:
         pass
 
@@ -104,9 +105,9 @@ class Cluster:
             raise ValueError("No clusters found. Call 'fit' method first.")
 
         # Use the replace_with_clusters function to assign each data point to its corresponding cluster
-        return replace_with_clusters(self.data, self.labels, self.clusters)
+        return replace_with_clusters(self._design_2d, self.labels, self.clusters)
     
-    def get_elbow_curve(self,beta:np.ndarray,order:int):
+    def get_elbow_curve(self,beta:np.ndarray,order:int, linkage_methods:List[str]=['ward', 'complete', 'average']):
         """
         Plots the elbow curve for the given clustering algorithm between the start and end values of k.
 
@@ -117,6 +118,9 @@ class Cluster:
             
         order : int
                 The maximum order of interactions to include in the model. Must be 1, 2 or 3.
+        linkage_methods : List of str, optional
+                The different linkage methods. Default is ['ward', 'complete', 'average']
+                  
             
 
         Returns
@@ -127,35 +131,51 @@ class Cluster:
         -----
         The function computes the I optimality for each value of k between start (number of parameters) and end (unique point) and plots it.
         """
-        # Compute the I-optimality criterion for each value of k
-        i_opt_values = []
+        colors = ['r', 'g', 'b']
         
+        # Define the number of clusters to compare
+        min_clusters = beta.size +1
+                
         # Set the maximum number of clusters
-        max_clusters = self.get_unique_rows(self.data)
-
-        for k in range(beta.size + 1, max_clusters + 1):
-            # Fit the clustering algorithm for the given value of k
-            self.fit(k)
+        max_clusters = self.get_unique_rows(self._design_2d)
+        
+        # Create an empty DataFrame to store the I-optimality values
+        df = pd.DataFrame(columns=['Method'] + list(range(min_clusters, max_clusters+1)))
+        
+        for i, linkage_method in enumerate(linkage_methods):
+            # Compute the I-optimality criterion for each value of k
+            i_opt_values = []
             
-            # Replace the data points with cluster values
-            replaced_data = self.design()
-            cluster_design = replaced_data.T.reshape(self.design_.shape)
+
+            for k in range( min_clusters, max_clusters + 1):
+                # Fit the clustering algorithm for the given value of k
+                self.fit(k,linkage_method)
+                
+                # Replace the data points with cluster values
+                replaced_data = self.design()
+                cluster_design = replaced_data.T.reshape(self._design.shape)
+                
+                # Calculate the I-optimality criterion for the replaced values
+                i_opt = get_i_optimality_mnl(cluster_design, order, beta)
+
+                # Store the I-optimality criterion value
+                i_opt_values.append(i_opt)
+
+
+            # Plot the elbow curve
+            plt.plot(range( min_clusters, max_clusters + 1), i_opt_values, colors[i]+'x-',label=linkage_method)
             
-            # Calculate the I-optimality criterion for the replaced values
-            i_opt = get_i_optimality_mnl(cluster_design, order, beta)
-
-            # Store the I-optimality criterion value
-            i_opt_values.append(i_opt)
-
-
-        # Plot the elbow curve
-        plt.plot(range(beta.size + 1, max_clusters + 1), i_opt_values, 'bx-')
+            # Add the I-optimality values to the DataFrame
+            df.loc[len(df)] = [linkage_method] + i_opt_values
+            
         plt.xlabel('Number of clusters (k)')
         plt.ylabel('I-optimality')
         plt.title('Elbow curve')
+        plt.legend()
         plt.show()
     
-
+        # Print the DataFrame
+        print(df)
     def get_unique_rows(self,arr:np.ndarray, tolerance=1e-9)->int:
         """
         Get the unique rows of a 2D numpy array based on a specified tolerance level for element-wise equality comparisons.
@@ -186,27 +206,30 @@ class Cluster:
 
 
 class HierarchicalCluster(Cluster):
-    def fit(self, k:int) -> np.ndarray:
+    def fit(self, k:int,linkage_method:str='ward') -> np.ndarray:
         # Compute pairwise distances between all pairs of data points
-        distances = pdist(self.data)
+        distances = pdist(self._design_2d)
 
-        # Perform hierarchical clustering on the pairwise distances using the 'ward' method
-        self.clusters = linkage(distances, method='ward')
+        # Perform hierarchical clustering on the pairwise distances using the specific method
+        self.clusters = linkage(distances, method=linkage_method)
 
         # Extract the labels of each data point based on the number of clusters
         self.labels = fcluster(self.clusters, k, criterion='maxclust')
 
         # Extract the coordinates of the data points for each cluster
-        coords = [self.data[np.where(self.labels == i)[0], :] for i in range(1, k+1)]
+        coords = [self._design_2d[np.where(self.labels == i)[0], :] for i in range(1, k+1)]
 
         # Calculate the mean of each cluster
         means = []
         for cluster in coords:
             # Compute the mean of each dimension separately and append to means list
             if len(cluster) == 0:
-                means.append(np.zeros(self.data.shape[1]))
+                means.append(np.zeros(self._design_2d.shape[1]))
             else:
-                means.append(np.mean(cluster, axis=0))
+                mean_x = np.mean(cluster[:, 0])
+                mean_y = np.mean(cluster[:, 1])
+                mean_z = 1 - (mean_x + mean_y)
+                means.append(np.array([mean_x, mean_y, mean_z]))
             
 
         # Stack the mean coordinates of each cluster
@@ -218,36 +241,17 @@ class HierarchicalCluster(Cluster):
         plt.show()
 
 
-from sklearn.cluster import KMeans
-
-class KMeansCluster(Cluster):
-    def fit(self, k:int) -> np.ndarray:
-        # Create a KMeans object with the desired number of clusters
-        kmeans = KMeans(n_clusters=k)
-
-        # Fit the KMeans model to your data
-        kmeans.fit(self.data)
-
-        # Get the cluster labels and centroids from the KMeans object
-        self.labels = kmeans.labels_
-        self.clusters = kmeans.cluster_centers_
-
-        # Return the cluster centroids
-        return self.clusters
-
-
-
 class AgglomerativeCluster(Cluster):
     def fit(self, k:int) -> np.ndarray:
         # Create an AgglomerativeClustering object with the desired number of clusters
         agglomerative = AgglomerativeClustering(n_clusters=k)
 
         # Fit the AgglomerativeClustering model to your data
-        agglomerative.fit(self.data)
+        agglomerative.fit(self._design_2d)
 
         # Get the cluster labels and clusters from the AgglomerativeClustering object
         labels = agglomerative.labels_
-        clusters = [self.data[labels == label] for label in np.unique(labels)]
+        clusters = [self._design_2d[labels == label] for label in np.unique(labels)]
 
         # Calculate the mean coordinates of each cluster ensuring they sum up to one
         means = []
@@ -261,7 +265,7 @@ class AgglomerativeCluster(Cluster):
         centroids = np.stack(means)
 
         # Create a new numpy array with the same data ordering as the original but with cluster assignments
-        ordered_data = np.zeros_like(self.data)
+        ordered_data = np.zeros_like(self._design_2d)
         for label in np.unique(labels):
             ordered_data[labels == label] = centroids[label]
 

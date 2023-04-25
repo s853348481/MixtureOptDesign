@@ -1,8 +1,6 @@
 
 from MixtureOptDesign.MNL.mnl_utils import get_i_optimality_mnl
 import numpy as np
-from numba import jit
-
 
 
 
@@ -123,6 +121,7 @@ def neighborhood_func_2(other_points, initial_design, beta):
                         i_new_value = get_i_optimality_mnl(canditate_design, 3, beta)
                         
                         # improvement with a minimum scale of 0.01
+                        # still need to change the scale for the change in i optimality
                         if i_opt_value >= (i_new_value + 0.01) and i_new_value > 0:
                             initial_design = canditate_design
                             i_opt_value = i_new_value
