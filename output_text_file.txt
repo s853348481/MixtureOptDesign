@@ -1,0 +1,1014 @@
+Bayesian I-optimal designs for choice experiments with mixtures
+Mario Becerraa,*, Peter Goosa,b
+aFaculty of Bioscience Engineering, KU Leuven, Leuven, Belgium
+bFaculty of Business and Economics, Universiteit Antwerpen, Antwerpen, Belgium
+ARTICLE INFO
+Keywords:
+Choice experiment
+I-optimalityMixture coordinate exchange algorithmMixture experimentMultinomial logit modelScheff /C19e modelsABSTRACT
+Discrete choice experiments are frequently used to quantify consumer preferences by having respondents choose
+between different alternatives. Choice experiments involving mixtures of ingredients have been largely over-
+looked in the literature, even though many products and services can be described as mixtures of ingredients. As a
+consequence, little research has been done on the optimal design of choice experiments involving mixtures. Theonly existing research has focused on D-optimal designs, which means that an estimation-based approach was
+adopted. However, in experiments with mixtures, it is crucial to obtain models that yield precise predictions for
+any combination of ingredient proportions. This is because the goal of mixture experiments generally is to ﬁnd the
+mixture that optimizes the respondents ’utility. As a result, the I-optimality criterion is more suitable for designing
+choice experiments with mixtures than the D-optimality criterion because the I-optimality criterion focuses on
+getting precise predictions with the estimated statistical model. In this paper, we study Bayesian I-optimal de-
+signs, compare them with their Bayesian D-optimal counterparts, and show that the former designs performsubstantially better than the latter in terms of the variance of the predicted utility.
+1. Introduction
+Discrete choice experiments are frequently used to quantify consumer
+preferences. These experiments collect stated preference data and are
+carried out by presenting respondents sets of alternatives, called choice
+sets, and having them choose between the alternatives. The respondentsrepeat this task several times with different choice sets. It is common to
+have the respondents do pairwise comparisons with choice sets that
+involve two alternatives each.
+Discrete choice experiments have been successfully applied in areas
+such as marketing [ 1,2], transportation [ 3], health care [ 4], ecology
+[5–7], and environmental economics [ 8–10]. However, choice experi-
+ments involving mixtures have been largely overlooked in the literature,
+even though many products and services can be described as mixtures of
+ingredients.
+Examples of mixture ingredients include the chemicals that are used
+to create a pesticide [ 11]; media used in advertising campaigns [ 12];
+components of a mobility budget such as car with fuel card and public
+transport card [ 3]; cement, water, and sand to make concrete [ 13]; the
+wheat varieties used to bake bread [ 14]; and the ingredients used to
+make a drink such as mango juice, lime juice, and blackcurrant syrup [ 15,
+16]. In mixture experiments, the products and services underinvestigation are expressed as combinations of proportions of ingredients
+and the researchers ’interest is generally in one or more characteristics of
+the mixture. In this paper, the characteristic of interest is the preference
+of respondents. Choice experiments are ideal to collect data for quanti-
+fying and modeling preferences for mixtures.
+Theﬁrst example of a discrete choice experiment concerning mixtures
+was published by Courcoux and S /C19em/C19enou [ 15]. The experiment is actu-
+ally a taste experiment to model the preferences for cocktails involving
+different proportions of mango juice, lime juice, and blackcurrant syrup.
+The resulting experimental data involve the responses of sixty people,
+each making eight pairwise comparisons of different cocktails. Thus,
+eight times in total, each respondent had to taste two different cocktails
+and say which one they preferred. This means that the choice experiment
+comprised 60 /C28¼480 choice sets, each of size 2. Goos and Hami-
+douche [ 16] described how to combine Scheff /C19e models for data from
+mixture experiments with the logit type models typically used for choice
+experiments, and demonstrated the usefulness of the resulting combined
+models using the data from Courcoux and S /C19em/C19enou [ 15].
+As discrete choice experiments in general, and taste experiments in
+the form of a discrete choice experiment in particular, are expensive,
+cumbersome and time-consuming, ef ﬁcient experimental designs are
+required so that the experiments provide reliable information for
+* Corresponding author.
+E-mail addresses: mario.becerra@kuleuven.be ,mario.becerra@kuleuven.be (M. Becerra).
+Contents lists available at ScienceDirect
+Chemometrics and Intelligent Laboratory Systems
+journal homepage: www.elsevier.com/locate/chemometrics
+https://doi.org/10.1016/j.chemolab.2021.104395
+Received 28 May 2021; Received in revised form 9 July 2021; Accepted 19 July 2021
+Available online 24 July 20210169-7439/ ©2021 Elsevier B.V. All rights reserved.Chemometrics and Intelligent Laboratory Systems 217 (2021) 104395statistical modeling, precise estimation of model parameters and precise
+predictions. Optimal design of experiments is the branch of statistics
+dealing with the construction of ef ﬁcient experimental designs.
+Little research has been done concerning the optimal design of choice
+experiments with mixtures. For their experiment, Courcoux and
+S/C19em/C19enou [ 15] used an elegant ad hoc design construction combining a
+simplex centroid design to de ﬁne the mixtures used and a balanced
+incomplete block design to de ﬁne subsets of the mixtures. Assuming a
+multinomial logit model, Ruseckaite et al. [ 17] compared two algorithms
+toﬁnd D-optimal designs for choice experiments with mixtures. A
+D-optimal design is an experimental design that maximizes the deter-
+minant of the Fisher information matrix. The D-optimal design approach
+can be viewed as an estimation-based approach, because it is intended to
+minimize the generalized variance of the estimators of the model pa-
+rameters. D-optimal experimental designs are thus a good choice if
+obtaining low-variance estimators is the main goal of the choice exper-
+iment. However, in experiments with mixtures, the goal generally is to
+optimize the composition of the mixture to maximize consumer prefer-
+ence. Therefore, in mixture experiments, it is crucial to obtain models
+that yield precise predictions for any combination of ingredient pro-
+portions. As a result, I-optimal experimental designs are more suitable for
+choice experiments with mixtures than D-optimal ones. I-optimal designs
+minimize the average prediction variance and therefore allow a better
+identi ﬁcation of the mixture that maximizes the consumer preference. In
+this paper, we therefore study I-optimal designs for discrete choice ex-
+periments involving mixtures.
+The rest of the paper is organized as follows. In Section 2, we describe
+how to incorporate mixtures into the multinomial logit choice model. In
+Section 3, we describe the D- and I-optimality criteria. In Section 4,w e
+outline the design construction algorithm we use. In Section 5, we pre-
+sent our computational results. Finally, in Section 6, we summarize and
+discuss our work and include some suggestions for future research.
+2. Models
+In this section, we introduce the most commonly used models for data
+from mixture experiments as well as the multinomial logit model for
+choice data, and explain how to combine the two models for data from
+choice experiments involving mixtures.
+2.1. Models for data from mixture experiments
+Mixture experiments involve two or more ingredients and a response
+variable that depends only on the relative proportions of the ingredients
+in the mixture. Each mixture is described as a combination of qingredient
+proportions, with the constraint that these proportions sum up to one.Due to this constraint, a classical regression model involving an intercept
+and linear terms in the ingredient proportions exhibits perfect collin-
+earity. Therefore, researchers must use dedicated regression models
+when analyzing data from mixture experiments. The most commonly
+used family of models for data from mixture experiments is the Scheff /C19e
+family [ 18,19]. The most popular Scheff /C19e models are the ﬁrst-order,
+second-order, and special-cubic models.
+Denoting the response in a traditional mixture experiment with a
+continuous outcome by Yand the qingredient proportions by x
+1,x2,…,
+xq, with xi/C210 andPq
+i¼1xi¼1, the ﬁrst-order Scheff /C19e model is
+Y¼Xq
+i¼1βixiþϵ:
+The second-order Scheff /C19e model is
+Y¼Xq
+i¼1βixiþXq/C01
+i¼1Xq
+j¼iþ1βijxixjþϵ;
+and,ﬁnally, the special-cubic Scheff /C19e model isY¼Xq
+i¼1βixiþXq/C01
+i¼1Xq
+j¼iþ1βijxixjþXq/C02
+i¼1Xq/C01
+j¼iþ1Xq
+k¼jþ1βijkxixjxkþϵ:
+In all three cases, ϵdenotes the error term, which, traditionally, is
+assumed to be normally distributed.
+2.2. Multinomial logit model for choice data
+The multinomial logit model builds on random-utility theory and
+assumes that a respondent in a choice experiment faces Schoice sets
+involving Jalternatives. The model assumes that, within each choice set
+s2f1;…;Sg, each respondent chooses the alternative that has the
+highest perceived utility. Therefore, the probability that a respondent
+chooses alternative j2f1;…;Jgin choice set s, denoted by pjs, is the
+probability that the perceived utility of alternative jin choice set s,
+denoted by Ujs, is larger than that of the other alternatives in the choice
+set:
+pjs¼P/C2
+Ujs>maxðU1s;…;Uj/C01;s;Ujþ1;s;…;UJsÞ/C3
+Since each alternative in a choice set has a set of observable attributes
+that characterize it, the perceived utility Ujscan be expressed as
+Ujs¼fTðxjsÞβþϵjs; (1)
+where xjsis the vector that contains the attributes corresponding to
+alternative jin choice set s,f(xjs) represents the model expansion of this
+attribute vector, and βis the vector containing the model parameters. The
+model parameters contained within βexpress the preferences of the re-
+spondents for the alternatives' attributes. The error terms ϵjsin Equation
+(1)are assumed to be independent and identically Gumbel distributed.
+The Gumbel distribution is also known as the generalized extreme value
+distribution type I and as the log-Weibull distribution. As a result of the
+distributional assumption, it can be shown that
+pjs¼exp/C2
+fTðxjsÞβ/C3
+PJ
+t¼1exp/C2
+fTðxtsÞβ/C3;
+which is called the softmax function in some research areas.
+2.3. Model for choice data concerning mixtures
+In this paper, where we focus on choice experiments involving mix-
+tures, we assume that the attributes of the alternatives in a choice
+experiment are the ingredients of a mixture. Consequently, we assume
+that the attribute vector xjscontains the qingredient proportions x1,x2,
+…,xqand that f(xjs) represents the model expansion of these proportions.
+Following Ruseckaite et al. [ 17], we base the polynomial expansion f(xjs)
+on the ﬁrst-order, second-order, or special-cubic Scheff /C19e model;
+depending on the complexity of the respondents ’preferences. To explain
+how this is done, we start from the special-cubic model. The derivation of
+the models based on the ﬁrst-order and second-order Scheff /C19e model is
+analogous.
+When starting from the special-cubic Scheff /C19e model, the most natural
+thing to do would be to write the perceived utility Ujsof a mixture
+alternative jin choice set sas
+Ujs¼Xq
+i¼1βixijsþXq/C01
+i¼1Xq
+k¼iþ1βikxijsxkjsþXq/C02
+i¼1Xq/C01
+k¼iþ1Xq
+l¼kþ1βiklxijsxkjsxljsþϵjs;
+with the error terms ϵjsassumed to be independent and identically
+Gumbel distributed. However, due to the constraint that the ingredient
+proportions must sum up to one, this leads to an inestimable multinomial
+logit model. As a matter of fact, due to that constraint, we can rewrite xqjs
+as 1/C0x1js/C0…/C0xq/C01,jsand UjsasM. Becerra, P. Goos Chemometrics and Intelligent Laboratory Systems 217 (2021) 104395
+2Ujs¼Pq/C01
+i¼1βixijsþβqð1/C0x1js/C0…/C0xq/C01;j;sÞþXq/C01
+i¼1Xq
+k¼iþ1βikxijsxkjs
+þPq/C02
+i¼1Pq/C01
+k¼iþ1Pq
+l¼kþ1βiklxijsxkjsxljsþϵjs
+¼βqþXq/C01
+i¼1ðβi/C0βqÞxijsþXq/C01
+i¼1Xq
+k¼iþ1βikxijsxkjsþXq/C02
+i¼1Xq/C01
+k¼iþ1
+Pq
+l¼kþ1βiklxijsxkjsxljsþϵjs:
+Thisﬁnal expression for the perceived utility Ujsinvolves a constant,
+βq. Because the multinomial logit model only takes into account differ-
+ences in utility, that constant causes any choice model based on Ujsto be
+ill-deﬁned and therefore inestimable. This can be easily remedied by
+dropping βqand using the following expression for the perceived utility:
+Ujs¼fTðxjsÞβþϵjs¼Xq/C01
+i¼1β*
+ixijsþXq/C01
+i¼1Xq
+k¼iþ1βikxijsxkjsþXq/C02
+i¼1Xq/C01
+k¼iþ1
+Xq
+l¼kþ1βiklxijsxkjsxljsþϵjs;
+with β*
+i¼βi/C0βqfori2f1;…;q/C01g. In this expression,
+xjs¼/C0
+x1js;x2js;…;xqjs/C1T
+and
+fðxjsÞ¼/C0
+x1js;x2js;…;xq/C01;js;x1jsx2js;…;xq/C01;jsxqjs;x1jsx2jsx3js;…;xq/C02;jsxq/C01;jsxqjs/C1T:
+The parameter vector βfor the special-cubic model is then given by
+β¼/C16
+β*
+1;β*
+2;…;β*
+q/C01;β1;2;…;βq/C01;q;β123;…;βq/C02;q/C01;q/C17T
+:
+This vector has r¼(q3þ5q)/6/C01 elements in the event the special-
+cubic model is used. For the ﬁrst- and second-order Scheff /C19e models, the
+parameter vector βinvolves r¼q/C01 and r¼(q2þq)/2/C01 elements,
+respectively, after implementing the remedy to make the model
+estimable.
+3. Optimal design criteria3.1. Information matrix
+To select D- and I-optimal experimental designs, it is required to know
+the information matrix of the model. For the multinomial logit model, the
+information matrix I(X,β) is obtained as the sum of the information
+matrices of each of the Schoice sets [ 20]:
+IðX;βÞ¼X
+S
+s¼1XT
+sðPs/C0pspT
+sÞXs;
+with ps¼ðp1s;…;pJsÞT,Ps¼diag( ps),XT
+s¼/C2
+fðxjsÞ/C3
+j2f1;…;Jgdenoting the
+model matrix corresponding to all alternatives in choice set s, and X¼
+½X1;…;XS/C138denoting the model matrix for all choice sets. The information
+matrix I(X,β) is of dimension r/C2r. The inverse of the information matrix
+is the asymptotic variance-covariance matrix of the parameter estimates.
+Note that the information matrix depends on the unknown parameter
+vector β, through the choice probabilities contained within psandPs. This
+is typical for models that are not linear in the parameters, such as discrete
+choice models, and it implies that prior information is needed to ﬁnd
+optimal designs [ 17,20,21]. The prior information can be in the form of a
+point estimate, or in the form of a prior distribution. An optimal design
+that uses only a point estimate is called a locally optimal design, whilst
+one that uses a prior distribution is called a Bayesian optimal design.
+In optimal experimental design, there are different criteria to measurethe quality of a design and the corresponding model matrix X. As pointed
+out in Goos and Jones [ 22], the two most widely used criteria for
+selecting experimental designs in business and industry are D-optimality
+and I-optimality (also called V-optimality; see Goos and Sya ﬁtri [23]).
+The former is an estimation-oriented criterion because it focuses on a
+precise model estimation, while the latter is a prediction-oriented crite-
+rion because it focuses on getting precise predictions with the estimated
+statistical model.
+3.2. D-optimal designs
+The D-optimality criterion is the most traditional metric used in the
+design of choice experiments [ 24–29]. For a model matrix Xand
+parameter vector β, the D-optimality criterion can be de ﬁned as
+D¼ log0
+@det/C0/C2
+I/C01ðX;βÞ/C1/C3 1
+r1
+A; (2)
+where I/C01(X,β) is the asymptotic variance-covariance matrix and the
+inverse of the information matrix of the parameter estimates. A design
+that minimizes Equation (2)using a point estimate of βis called a locally
+D-optimal design. The problem with locally D-optimal designs is that
+they may perform poorly for values of the parameter vector βfor which
+they were not optimized. This weakness is, of course, highly relevant
+because the true values of the model parameters are unknown.
+Bayesian designs take into account prior information and uncertainty
+about the parameter vector β. More speci ﬁcally, they are based on a prior
+distribution π(β) which summarizes the prior knowledge concerning β.
+Most of the Bayesian design constructions in the choice experiments
+literature adopt the approach where the D-optimality criterion is aver-
+aged over the prior distribution [ 24,26,29]. This is also the approach we
+use. Therefore, following Ruseckaite et al. [ 17], we de ﬁne the Bayesian
+D-optimality criterion for the multinomial logit model as
+DB¼log0
+@Z
+Rr/C2
+det/C0
+I/C01ðX;βÞ/C1/C3 1
+rπðβÞdβ1
+A; (3)
+where π(β) is the prior distribution of β. We refer to a design that mini-
+mizes the Bayesian D-optimality criterion as a Bayesian D-optimal design,
+even though the criterion does not take into account the posterior dis-
+tribution and some authors therefore prefer to call these designs pseudo-
+Bayesian designs [ 30].
+3.3. I-optimal designs
+The I-optimality criterion is generally de ﬁned as the average of the
+prediction variance over the experimental region, which we denote by χ
+and which is the ( q/C01)-dimensional simplex if there are no constraints
+on the ingredient proportions other than those mentioned in Section 2.1.
+Now, when using choice models, there are two ways in which we can
+deﬁne I-optimality. If the goal is to predict choice probabilities, the I-
+optimality criterion is the average variance of the predicted choice
+probabilities. If the goal is to predict perceived utilities, the I-optimality
+criterion is the average variance of the predicted utilities.
+3.3.1. I-optimality for predicted choice probabilities
+Kessels et al. [ 31] computed I-optimal designs based on the variance
+of the predicted choice probability, Varh
+^pjsi
+. Since this prediction vari-
+ance cannot be calculated analytically, they approximated it using a
+ﬁrst-order Taylor series expansion of the choice probability:
+Var/C2
+^pjs/C3
+/C25cTðxjsÞI/C01ðX;βÞcðxjsÞ;
+where ^pjsdenotes the predicted choice probability, andM. Becerra, P. Goos Chemometrics and Intelligent Laboratory Systems 217 (2021) 104395
+3cðxjsÞ¼∂pjs
+∂β¼pjs 
+xjs/C0XJ
+t¼1ptsxts!
+As a consequence, the I-optimality criterion of Kessels et al. [ 31]i s
+Z
+χVar/C2
+^pjs/C3
+dxjs
+Z
+χdxjs¼Z
+χcTðxjsÞI/C01ðX;βÞcðxjsÞdxjs
+Z
+χdxjs
+¼Z
+χtr/C2
+I/C01ðX;βÞcðxjsÞcTðxjsÞ/C3
+dxjs
+Z
+χdxjs¼tr/C2
+I/C01ðX;βÞWpðβÞ/C3
+Z
+χdxjs; (4)
+where
+WpðβÞ¼Z
+χcðxjsÞcTðxjsÞdxjs (5)
+is referred to as the moments matrix in the literature on I-optimality
+and the subscript prefers to the fact that this is the moments matrix for
+the I-optimality criterion based on choice probabilities. The denominator
+in Equation (4)is the volume of the experimental region χ. This de-
+nominator can be safely ignored when constructing I-optimal designs
+because it is constant for all designs for a given experiment.
+Due to the fact that Kessels et al. [ 31] considered only categorical
+attributes in their choice experiments, they were able to calculate the
+moments matrix exactly for any given parameter vector β. This is
+impossible when continuous attributes are considered, because there is
+no closed-form solution for the integral in Equation (5). Since the attri-
+butes we consider in this paper are ingredient proportions, we also
+cannot calculate Wp(β) exactly. The solution to this problem would be to
+numerically approximate the integral in Equation (5).
+In our view, basing the I-optimality criterion for choice experiments
+with mixtures on predicted probabilities suffers from four weaknesses.
+First, there is no analytical expression for the variance of a predicted choice
+probability, which necessitates a ﬁrst approximation. Second, there is no
+closed form expression for the average of the approximation of the vari-
+ance of the predicted choice probability, which necessitates a second
+approximation. Third, the fact that Wp(β) depends on βimplies that it
+increases the computational burden in the event a Bayesian optimal design
+is desired. Finally, any choice probability is always calculated with respect
+to a certain choice set, involving a certain number of alternatives. Hence, to
+be able to use the I-optimality criterion based on predicted probabilities,
+we need to pick a choice set size, a number of choice sets to consider and
+alternatives to be included in these choice sets. As there is no reason to
+prefer one choice set size, one number of choice sets, or one set of alter-
+natives over another; there is no indisputable way to de ﬁne the I-opti-
+mality criterion based on choice probabilities. Due to these weaknesses, we
+prefer to de ﬁne the I-optimality criterion for choice experiments with
+mixtures based on predicted utilities.
+3.3.2. I-optimality for predicted utilities
+In this paper, we base the I-optimality criterion on predicted utilities.
+One reason to do so is that approach does not suffer from the four
+weaknesses we identi ﬁed for the I-optimality criterion based on pre-
+dicted choice probabilities. Another reason for our approach is that, to
+ﬁnd the mixture that maximizes the consumer preferences, it suf ﬁces to
+identify the mixture that maximizes the predicted utility. As a matter of
+fact, the mixture with the largest possible predicted utility will auto-
+matically have the largest predicted choice probability, regardless of the
+alternatives to it. Finally, starting from predicted utilities is mathemati-
+cally elegant because there is a closed form expression for the variance of
+the predicted perceived utility, for a given parameter vector β.
+The variance of the predicted utility is de ﬁned asVarh
+^Ujsi
+¼fTðxjsÞVarh
+^βi
+fðxjsÞ¼fTðxjsÞI/C01ðX;βÞfðxjsÞ;
+for a given parameter vector β. As a result, the average variance of the
+predicted utility is
+Z
+χfTðxjsÞI/C01ðX;βÞfðxjsÞdxjs¼Z
+χtr/C2
+I/C01ðX;βÞfðxjsÞfTðxjsÞ/C3
+dxjs¼tr/C2
+I/C01ðX;βÞWu/C3
+where
+Wu¼Z
+χfðxjsÞfTðxjsÞdxjs (6)
+is the moments matrix corresponding to our de ﬁnition of the I-opti-
+mality criterion, with the subscript ureferring to the fact that this is the
+moments matrix for the I-optimality criterion based on predicted utilities.
+In the event the experimental region χis the ( q/C01)-dimensional
+simplex, there exists a closed-form expression for the moments matrix Wu
+that does not depend on the parameter vector β[32]. This means that,
+even if a Bayesian optimal design is desired, the moments matrix needs to
+be computed only once in the design creation process, reducing the
+computational burden. The elements of the moments matrix Wucan be
+obtained using the following formula given in Goos et al. [ 32], Goos et al.
+[33], and DeGroot [ 34]:
+Z
+χxp1
+1xp2
+2…xpq
+qdx1dx2…dxq/C01¼Qq
+i¼1Γðpiþ1Þ
+Γ/C0
+qþPq
+i¼1pi/C1:
+Our local I-optimality criterion is given by
+I¼Z
+χVarh
+^Ujsi
+dxjs¼tr/C2
+I/C01ðX;βÞWU/C3
+;
+while our Bayesian I-optimality criterion is
+IB¼Z
+Rrtr/C2
+I/C01ðX;βÞWU/C3πðβÞdβ: (7)
+In these expressions, we ignore the volume of the experimental re-
+gion, 1/( q/C01)!, because, for the optimization of the designs, it is an
+irrelevant constant.
+4. Construction of I-optimal designs
+To compute Bayesian I-optimal designs for choice experiments with
+mixtures, we used a coordinate-exchange algorithm [ 22,35], modi ﬁed to
+generate Bayesian I-optimal designs for choice experiments with mix-
+tures. A coordinate-exchange algorithm was also used by Kessels et al.
+[31] and Ruseckaite et al. [ 17] in the context of choice experimentation.
+Our algorithm was implemented in the R programming language [ 36]i n
+which we created a package called opdesmixr which is available at htt
+ps://github.com/mariobecerra/opdesmixr . The package was created
+with the aid of several other R packages [ 37–44], and allows the
+computation of locally D-optimal, Bayesian D-optimal, locally I-optimal,
+and Bayesian I-optimal designs for ﬁrst-order, second-order, and
+special-cubic Scheff /C19e models. The user must specify either a single
+parameter vector for a locally optimal design or a matrix of draws from
+the parameter vector's prior distribution for a Bayesian optimal design.
+Our coordinate-exchange algorithm starts from a random initial
+design, and starts by optimizing the ﬁrst ingredient proportion of the ﬁrst
+alternative within the ﬁrst choice set, followed by the second ingredient
+proportion of the ﬁrst alternative within the ﬁrst choice set, and so on,
+until all qingredient proportions have been optimized. The algorithm
+then repeats this process for each alternative and each choice set in the
+design. The whole process is repeated until the design can no longer be
+improved or until a maximum number of iterations has been reached. As
+pointed out in Piepel et al. [ 45], Goos and Jones [ 22], and RuseckaiteM. Becerra, P. Goos Chemometrics and Intelligent Laboratory Systems 217 (2021) 104395
+4et al. [ 17], the coordinate-exchange algorithm has to undergo some
+modiﬁcations to deal with mixtures. As a matter of fact, because the
+mixture proportions have to sum up to one, they cannot be changed
+independently, and a change in one proportion requires a change in at
+least one other proportion. We deal with this dependency by changing
+proportions using the so-called Cox effect direction [ 13,22,45]. This
+means that, after a change of one of the ingredient proportions, xijs,t oxijs
+þΔ, we modify the other q/C01 proportions as follows:
+xnew
+kjs:¼8
+>>><
+>>>:/C18
+1/C0Δ
+1/C0xijs/C19
+xkjs ifxijs6¼1;
+1/C0ðxijsþΔÞ
+q/C01ifxijs¼1:
+Three other aspects concerning our coordinate-exchange algorithm are
+worth mentioning too. First, we recommend running the coordinate-
+exchange algorithm multiple times, each time starting from a different
+random initial design. This is because the coordinate-exchange algorithm
+is a heuristic optimization algorithm, which cannot guarantee optimality,
+and by running it multiple times, we have a bigger chance of ﬁnding a truly
+optimal design. The larger the number of ingredients and the more com-
+plex the model, the larger the number of starts of the coordinate-exchange
+algorithm should be. For the examples discussed in Section 5,w eu s e8 0
+random starts of the algorithm because the number of ingredients is as low
+as three and the number of parameters is only six. Second, we seek the
+optimal value of every individual ingredient proportion xijsusing Brent's
+univariate optimization method [ 46]. Third, we need to approximate the
+Bayesian optimality criteria numerically, because there is no closed-form
+solution to the integrals in Equations (3) and (7) . It is common to do this
+utilizing random or systematic draws from the prior distribution π(β)[2,
+17,31,47]. Denoting the Rdraws from the prior distribution by β(i),t h e
+approximations for Equations (3) and (7) are
+DB/C25log0
+@1
+RXR
+i¼1/C2
+det/C0
+I/C01ðX;βðiÞÞ/C1/C3 1
+r1
+A; (8)
+and
+IB/C251
+RXR
+i¼1tr/C2
+I/C01ðX;βðiÞÞWU/C3
+(9)
+One commonly used method to obtain draws from a prior distribution
+involves Halton sequences. The resulting Halton draws provide a good
+coverage of the entire density domain, as well as negatively correlated
+draws that reduce the variance of the approximation to the integral [ 2].
+Therefore, like Ruseckaite et al. [ 17], we used 128 Halton draws from the
+prior distribution in both of our examples in the next section. The number
+128 provides a good enough approximation for the number of parameters
+in the models used in the two examples. For choice experiments involving
+more model parameters, a larger number of Halton draws should be used.
+For more details about Halton draws and other approximation methods, as
+well as their advantages and disadvantages, we refer to Yu et al. [ 47].
+5. Results
+This section shows our computational results for two example choice
+experiments involving a mixture. The ﬁrst example is the taste experi-
+ment involving cocktails from Courcoux and S /C19em/C19enou [ 15], while the
+second example involves an experiment with arti ﬁcial sweeteners for a
+sports drink from Cornell [ 13].
+5.1. Cocktail preferences
+Ruseckaite et al. [ 17] revisited an experiment by Courcoux and
+S/C19em/C19enou [ 15] in which seven fruit cocktails involving mango juice
+(whose true proportion we denote by a1), blackcurrant syrup (whose trueproportion we denote by a2), and lemon juice (whose true proportion we
+denote by a3) were tasted. This was done by 60 consumers which were
+asked to taste different pairs of the seven fruit cocktails and to indicate
+their preferred cocktail in each pair. Each respondent had to evaluate
+eight of 21 possible pairs, resulting in a ﬁnal experimental design with
+60/C28¼480 choice sets of size 2.
+In the experiment, Courcoux and S /C19em/C19enou [ 15] imposed lower
+bounds of 0.3, 0.15 and 0.1 on the three true ingredient proportions a1,
+a2, and a3. To deal with this issue and to be able to use our imple-
+mentation of the coordinate-exchange algorithm, like Ruseckaite et al.
+[17] did, we expressed the mixtures de ﬁning the cocktails in terms of
+so-called pseudocomponents x1,x2, and x3. These pseudocomponents are
+deﬁned such that they take a minimum value of 0 and a maximum value
+of 1, and sum up to one. The conversion of the true ingredient pro-
+portions into pseudocomponent proportions is done via the formula xi¼
+(ai/C0Li)/(1/C0L), where Lidenotes the lower bound of ingredient iandLis
+the sum of the lower bounds for all qingredient proportions.
+To compute D-optimal designs for the cocktail experiment, Ruseck-
+aite et al. [ 17] obtained a prior distribution for the parameter vector βin
+a special-cubic Scheff /C19e model. More speci ﬁcally, they re-analyzed the
+data from Courcoux and S /C19em/C19enou [ 15] and derived a multivariate
+normal prior distribution for βwith mean vector β0¼(1.36,1.57,2.47,
+/C00.43,0.50,1.09)Tand variance-covariance matrix
+X
+0¼0
+BBBBBB@6:14 5 :00 2 :74 /C00:43/C02:81/C03:33
+5:00 6 :76 4 :47 /C01:79/C06:13/C03:51
+2:74 4 :47 3 :45 /C01:38/C04:71/C02:17
+/C00:43/C01:79/C01:38 1 :18 2 :39 0 :71
+/C02:81/C06:13/C04:71 2 :39 7 :43 2 :71
+/C0
+3:33/C03:51/C02:17 0 :71 2 :71 2 :491
+CCCCCCA
+We used the same prior distribution to compute optimal designs with
+16 choice sets of size 2 assuming a special-cubic Scheff /C19e model. First, we
+computed a Bayesian D-optimal design to benchmark our implementa-
+tion of the coordinate-exchange algorithm against that of Ruseckaite
+et al. [ 17], and observed that our design has a slightly better D-optimality
+criterion value than the original when evaluated using our set of Halton
+draws. After this validation of our algorithm, we also computed a
+Bayesian I-optimal design. Our Bayesian D- and I-optimal designs are
+given in Tables 1 and 2 in the appendix and shown graphically in Fig. 1 .
+In the ﬁgure, the mixtures in each of the 16 choice sets are presented in
+terms of the pseudocomponent proportions and visualized using different
+markers for each choice set. The four colored areas in the graph corre-
+spond to four prior utility intervals, corresponding to the cutoff values 0,
+0.5625, 1.125, 1.6875, and 2.25. The yellow area is the set of mixtures
+with the lowest a priori utility values, while the red area indicates the set
+of mixtures with the highest a priori utility values.
+Fig. 2 shows the fraction of the design space plots of the two Bayesian
+optimal designs we computed and of the benchmark design from
+Ruseckaite et al. [ 17]. Fraction of design space plots were originally
+introduced by Zahran et al. [ 48] and display the performance of a design in
+terms of the prediction variance for each point in the experimental region
+or design space. The horizontal axis corresponds to a fraction of the
+experimental region, while the vertical axis ranges from the minimum
+prediction variance to the maximum prediction variance over the entire
+experimental region [ 22]. In the context of choice experiments, the pre-
+diction variance depends on the unknown parameter vector. We dealt with
+this issue by computing prediction variances for 128 Halton draws fromthe prior distribution of the parameter vector and averaging the results.
+The most striking conclusion from the fraction of design space plot is
+that the prediction variances are much lower for the Bayesian I-optimal
+design than for the Bayesian D-optimal designs. The plot shows, for
+instance, that the median prediction variance for the Bayesian I-optimal
+design is about 1.55, while it is about 3 for our Bayesian D-optimal design
+and 3.2 for the benchmark design. The maximum prediction variance is
+also substantially lower for the Bayesian I-optimal design. In summary,
+using the Bayesian I-optimal design provides much added value in termsM. Becerra, P. Goos Chemometrics and Intelligent Laboratory Systems 217 (2021) 104395
+5of precision of prediction when compared to Bayesian D-optimal designs.
+It is not easy to describe the properties of optimal choice designs. To
+compare the Bayesian D- and I-optimal designs, we quanti ﬁed the utilitybalance in the designs ’choice sets and computed the Euclidean distances
+between the alternatives in the choice sets. Utility balance refers to the
+property that alternatives within a choice set possess the same or a
+similar a priori utility and therefore have the same or almost the same a
+priori choice probability. Utility balance was advocated by Huber and
+Zwerina [ 49] as a desirable property for choice designs. A choice set of
+two alternatives is perfectly utility balanced in the event the choice
+probabilities of the two alternatives both equal 0.5 and the product of the
+two probabilities is 0.25. Choice sets that are not at all utility balanced
+involve alternatives with very different utilities and choice probabilities.
+For such choice sets, the product of the two choice probabilities is sub-
+stantially lower than 0.25. Fig. 3 a shows boxplots of the product of the
+choice probabilities in the choice sets of our Bayesian D-optimal and our
+Bayesian I-optimal design. The D-optimal design tends to have choice sets
+with a higher utility balance than the I-optimal design. However, the
+median values for the products of the choice probabilities in both designsare very similar and roughly equal to 0.17. This value corresponds to
+choice probabilities of about 0.78 and 0.22, implying that the Bayesian
+optimal designs do not exhibit much utility balance. Fig. 3 b shows the
+Euclidean distances between the two alternatives within a choice set for
+our Bayesian D- and I-optimal designs. The alternatives within a single
+Fig. 1. Bayesian optimal designs produced by our coordinate-exchange algorithm for the cocktail experiment. The colors represent utilities belonging to t he following
+intervals: [0, 0.5625), [0.5625, 1.125), [1.125, 1.6875), [1.6875, 2.25). (For interpretation of the references to color in this ﬁgure legend, the reader is
+referred to the Web version of this article.)
+Fig. 2. Fraction of design space plot of our Bayesian D- and I-optimal designs for
+the cocktail experiment as well as the Bayesian D-optimal design from
+Ruseckaite et al. [ 17].
+Fig. 3. Technical properties of our Bayesian D- and I-optimal designs for the cocktail experiment.M. Becerra, P. Goos Chemometrics and Intelligent Laboratory Systems 217 (2021) 104395
+6choice set tend to be closer together in the D-optimal design than in the
+I-optimal design. This can also be observed in Fig. 1 by comparing the
+distances between the mixtures represented by a given marker. That the
+alternatives within the choice sets of the I-optimal design are located
+further from each other is in line with our observations that they exhibit
+less utility balance. As a matter of fact, when the distance between two
+mixtures is large, they typically appear in a different utility interval (in
+other words, in a differently colored area) and their choice probabilities
+are necessarily quite different.
+5.2. Arti ﬁcial sweetener experiment
+As a second example, we also revisit the arti ﬁcial sweetener experiment,
+a three-ingredient mixture experiment from Cornell [ 13], intended to
+investigate whether an arti ﬁcial sweetener could be used in an athletic
+sports drink. The original response variable of interest was ‘intensity of
+sweetness aftertaste ’, but, just like Ruseckaite et al. [ 17], we interpret the
+intensity of sweetness aftertaste as being proportional to the utility in the
+multinomial logit model and consider a choice experiment consisting of 7
+choice sets of size two as an alternative to the original experiment in
+Ref. [ 13].
+For this example, Ruseckaite et al. [ 17] started with a special-cubic
+Scheff /C19e model to construct Bayesian D-optimal designs with a multivar-
+iate normal prior distribution with mean vector
+β0¼ð0:86;0:21;3:07;2:34;3:24;/C020:59ÞT
+and variance-covariance matrices of the form Σ0¼κI7, where κis a
+positive scalar that controls the level of uncertainty and I7is the identity
+matrix of size 7. A higher value of κindicates a higher level of uncertainty
+concerning the parameter values. The variance-covariance matrix was
+transformed to the identi ﬁed parameter space, as mentioned in Section
+2.3. The transformed variance-covariance matrix, denoted by Σ00,i s
+Σ0
+0¼0
+BBBBBB@2κκ 0000
+κ2κ0000
+00 κ000
+00 0 κ00
+00 0 0 κ0
+0 0 000 κ1
+CCCCCCA
+With our implementation of the coordinate-exchange algorithm, we
+ﬁrst computed Bayesian D-optimal designs for the same κvalues as
+Ruseckaite et al. [ 17], namely 0.5, 5, 10 and 30. When comparing our
+D-optimal designs to those of Ruseckaite et al. [ 17] using our sets of 128
+Halton draws from the prior distributions, we observed that our designs
+have D-optimality criterion values very close to those of Ruseckaite et al.
+[17], with three designs being slightly better and one being slightly
+worse. This provides another validation to our algorithm. We also
+computed Bayesian I-optimal designs for the four κvalues. All of our
+Bayesian D- and I-optimal designs are shown graphically in Fig. 4 . They
+are given in tabular format in Tables 3 –10in the appendix. The four
+different colors in Fig. 4 correspond to four intervals for the utility of the
+mixtures, with bounds 0, 0.375, 0.75, 1.125, and 1.34. It can be seen that
+the spread in the points in the optimal designs increases with κ, but this
+phenomenon is more pronounced for the Bayesian I-optimal designs than
+for the Bayesian D-optimal designs.
+Fig. 5 shows the fraction of design space plots for our Bayesian D- and
+I-optimal designs, as well as for the designs of Ruseckaite et al. [ 17]. For
+each value of κ, the I-optimal design has a much lower prediction vari-
+ance than our D-optimal design and that of Ruseckaite et al. [ 17]. The
+difference in predictive performance, in favor of the Bayesian I-optimal
+designs, increases with κ.
+Fig. 6 shows boxplots of the product of the choice probabilities in
+each choice set for our Bayesian D- and I-optimal designs for the different
+κvalues. For κ¼0.5, both types of designs score highly in utility balance,
+and there is hardly any difference between them in terms of utilitybalance. However, as κincreases, the product of the probabilities drops,
+meaning that the designs become less utility balanced.
+Fig. 7 shows boxplots of the Euclidean distances between the two al-
+ternatives within a choice set for our Bayesian D- and I-optimal designs.
+Just like in the cocktail experiment, mixtures within a single choice set
+tend to be closer together in the D-optimal designs than in the I-optimal
+designs, except when κ
+¼30. For that value of κ, there is no major dif-
+ference in the Euclidean distances between the alternatives within the
+choice sets of the D- and I-optimal designs. Finally, Fig. 7 shows that the
+distances between alternatives with choice sets decrease with the value of
+Fig. 4. Bayesian optimal designs for the arti ﬁcial sweetener experiment. The
+colors represent utilities belonging to the following intervals: [0, 0.375),
+[0.375, 0.75), [0.75, 1.125), [1.125, 1.34). (For interpretation of the
+references to color in this ﬁgure legend, the reader is referred to the Web version
+of this article.)M. Becerra, P. Goos Chemometrics and Intelligent Laboratory Systems 217 (2021) 104395
+7κ.
+6. Discussion
+In this paper, we introduced a computationally ef ﬁcient de ﬁnition for
+I-optimal designs for choice experiments and embedded the new I-opti-
+mality criterion in a coordinate-exchange algorithm for constructing I-
+optimal designs. By means of two examples from the literature, we
+demonstrated that the I-optimal designs perform substantially better than
+their D-optimal counterparts in terms of the variance of the predicted
+utility. We observed that I-optimal designs do not possess the utility
+balance property, which Huber and Zwerina [ 49] considered to be
+desirable for ef ﬁcient choice designs. However, Louviere et al. [ 50]
+argued against it, suggesting to instead derive an optimal design using an
+appropriate prior distribution. We believe this to be a more sensiblechoice given that it is our interest to have designs that yield precise
+predictions for any combination of ingredient proportions.
+While performing the research that led to this paper, we identi ﬁed six
+possible extensions of our work. First of all, it would be of interest to
+extend the work presented here to other classes of models for data from
+mixture experiments than the Scheff /C19e models, for example Becker models
+or Cox's mixture polynomial models [ 13].
+Second, the preference for a mixture may depend on characteristics
+other than its composition. For example, the ideal cocktail composition
+may also depend on the temperature at which it is served, or the most
+preferred bread might not only depend on the proportions of the various
+ingredients, but also on the baking time and the baking temperature. One
+practical example of such a scenario can be found in Zijlstra et al. [ 3],
+who observed that the preferred mobility budget mixture depends on the
+budget size. To cope with this kind of complication, our choice model for
+Fig. 5. Fraction of design space plots of the Bayesian optimal designs for the arti ﬁcial sweetener experiment.
+Fig. 6. Measures of utility balance for our Bayesian D- and I-optimal designs for the arti ﬁcial sweetener experiment.
+Fig. 7. Euclidean distances between alternatives within a choice set for our Bayesian D- and I-optimal designs for the arti ﬁcial sweetener experiment.M. Becerra, P. Goos Chemometrics and Intelligent Laboratory Systems 217 (2021) 104395
+8mixtures must be extended to deal with the additional characteristics,
+typically called process variables [22].
+Third, we focused on the multinomial logit model, which assumes
+that there is homogeneity in the preferences of the respondents. How-
+ever, as demonstrated by Courcoux and S /C19em/C19enou [ 15] and Goos and
+Hamidouche [ 16], this might be an unrealistic assumption. Therefore, it
+would make sense to extend the models and algorithms presented here to
+other types of models that take into account the possible presence of
+consumer heterogeneity. Examples of such models are the mixed logit
+model and the latent class choice model.
+A fourth opportunity for future research is inspired by a practical
+difﬁculty that arises when conducting choice experiments with mixtures.
+When the number of distinct mixtures appearing in the Bayesian optimal
+designs is large and the mixtures have to be tasted, it is logistically very
+cumbersome to organize the experiment. For instance, organizing a
+choice experiment in which 40 distinct mixtures have to be tasted in
+perhaps 80 different choice sets is much harder to organize than a choice
+experiment in which only 20 distinct mixtures have to be tasted in 40
+different choice sets. While the former experiment may be preferable
+from a statistical viewpoint, it may be practically infeasible. Developing
+an algorithm to ﬁnd Bayesian I-optimal designs with mixtures with an
+upper bound on the number of distinct mixtures and/or an upper bound
+on the number of distinct choice sets is therefore valuable from a prac-
+titioner's point of view.
+Aﬁfth topic for future research would be to modify our coordinate-
+exchange algorithm, so that it can also cope with experimental regionsthat are not a simplex. Such experimental regions arise when there are
+constraints on the ingredient proportions other than lower bounds forindividual proportions. Methodologically speaking, this is not highly
+innovative, since the mixture coordinate-exchange algorithm of Piepel
+et al. [ 45] for linear regression models is already able to deal with this
+complication. However, embedding this capability in our implementa-
+tion of the coordinate-exchange algorithm for choice experiments with
+mixtures would be useful for practitioners.
+Finally, a sixth topic for future research would be to extend the I-
+optimality criterion to cope with model uncertainty. In this paper, we
+assumed that the model form is known at the planning stage of the
+experiment, which is not always the case in practice. Therefore, there is a
+risk of bias in the predictions due to model misspeci ﬁcation. A design and
+modeling strategy to deal with this possible misspeci ﬁcation would
+protect experimenters against such bias.
+Author statement
+Mario Becerra: software, validation, methodology, writing - original
+draft, formal analysis, visualization.
+Peter Goos: conceptualization, methodology, investigation, resources,
+writing - review &editing, supervision, project administration, funding
+acquisition.
+Declaration of competing interest
+The authors declare that they have no known competing ﬁnancial
+interests or personal relationships that could have appeared to in ﬂuence
+the work reported in this paper.
+Appendix A. Design tables of cocktail experiment
+In both tables, x
+1,x2, and x3denote the pseudocomponents that range from 0 to 1, while a1,a2, and a3are the ingredient proportions with their
+original lower bounds.
+Table 1
+Bayesian D-optimal design for the cocktail experiment.
+Choice set x1 x2 x3 a1 a2 a3
+1 0.00 1.00 0.00 0.30 0.60 0.10
+1 0.60 0.40 0.00 0.57 0.33 0.102 1.00 0.00 0.00 0.75 0.15 0.102 0.46 0.00 0.54 0.51 0.15 0.343 0.00 0.00 1.00 0.30 0.15 0.553 0.00 0.55 0.45 0.30 0.40 0.30
+4 0.00 0.00 1.00 0.30 0.15 0.55
+4 0.00 0.55 0.45 0.30 0.40 0.305 0.60 0.40 0.00 0.57 0.33 0.105 0.00 1.00 0.00 0.30 0.60 0.106 1.00 0.00 0.00 0.75 0.15 0.106 0.40 0.60 0.00 0.48 0.42 0.107 0.00 1.00 0.00 0.30 0.60 0.10
+7 0.00 0.41 0.59 0.30 0.34 0.36
+8 1.00 0.00 0.00 0.75 0.15 0.108 0.31 0.36 0.33 0.44 0.31 0.259 0.00 0.50 0.50 0.30 0.38 0.329 0.40 0.29 0.31 0.48 0.28 0.2410 0.00 1.00 0.00 0.30 0.60 0.1010 0.36 0.33 0.31 0.46 0.30 0.2411 0.00 0.50 0.50 0.30 0.38 0.32
+11 0.40 0.29 0.31 0.48 0.28 0.24
+12 0.40 0.60 0.00 0.48 0.42 0.1012 1.00 0.00 0.00 0.75 0.15 0.1013 0.49 0.00 0.51 0.52 0.15 0.3313 0.00 0.48 0.52 0.30 0.37 0.3314 0.52 0.00 0.48 0.53 0.15 0.3214 0.27 0.40 0.33 0.42 0.33 0.2515 0.00 0.00 1.00 0.30 0.15 0.55
+15 0.53 0.00 0.47 0.54 0.15 0.31
+16 0.54 0.46 0.00 0.54 0.36 0.1016 0.30 0.33 0.38 0.43 0.30 0.27M. Becerra, P. Goos Chemometrics and Intelligent Laboratory Systems 217 (2021) 104395
+9Table 2
+Bayesian I-optimal design for the cocktail experiment.
+Choice set x1 x2 x3 a1 a2 a3
+1 0.00 0.00 1.00 0.30 0.15 0.55
+1 0.58 0.00 0.42 0.56 0.15 0.292 1.00 0.00 0.00 0.75 0.15 0.102 0.36 0.64 0.00 0.46 0.44 0.103 0.00 0.00 1.00 0.30 0.15 0.553 0.58 0.00 0.42 0.56 0.15 0.294 0.03 0.97 0.00 0.31 0.59 0.10
+4 0.29 0.28 0.43 0.43 0.27 0.29
+5 0.00 0.00 1.00 0.30 0.15 0.555 0.00 0.63 0.37 0.30 0.43 0.276 0.00 0.00 1.00 0.30 0.15 0.556 0.30 0.34 0.36 0.43 0.30 0.267 0.00 0.00 1.00 0.30 0.15 0.557 0.00 0.63 0.37 0.30 0.43 0.278 0.00 1.00 0.00 0.30 0.60 0.10
+8 0.65 0.35 0.00 0.59 0.31 0.10
+9 1.00 0.00 0.00 0.75 0.15 0.109 0.30 0.16 0.53 0.44 0.22 0.3410 0.00 0.49 0.51 0.30 0.37 0.3310 0.57 0.43 0.00 0.56 0.34 0.1011 0.00 0.00 1.00 0.30 0.15 0.5511 0.30 0.34 0.36 0.43 0.30 0.2612 0.00 0.00 1.00 0.30 0.15 0.55
+12 0.30 0.34 0.36 0.43 0.30 0.26
+13 0.45 0.00 0.55 0.50 0.15 0.3513 0.23 0.53 0.24 0.40 0.39 0.2114 0.00 0.41 0.59 0.30 0.34 0.3614 0.50 0.19 0.31 0.52 0.24 0.2415 0.00 0.00 1.00 0.30 0.15 0.5515 0.49 0.51 0.00 0.52 0.38 0.10
+16 0.00 0.00 1.00 0.30 0.15 0.55
+16 0.30 0.34 0.36 0.43 0.30 0.26
+Appendix B. Design tables of arti ﬁcial sweetener experiment
+Table 3
+Bayesian D-optimal design for the arti ﬁcial sweetener experiment, when κ¼0.5
+Choice set x1 x2 x3
+1 0.00 1.00 0.00
+1 0.61 0.39 0.002 0.00 1.00 0.002 0.24 0.30 0.473 0.00 0.00 1.00
+3 0.00 0.67 0.33
+4 1.00 0.00 0.004 0.40 0.60 0.005 0.22 0.44 0.335 0.59 0.00 0.416 0.40 0.00 0.606 1.00 0.00 0.007 0.00 0.33 0.67
+7 0.48 0.25 0.27
+Table 4
+Bayesian I-optimal design for the arti ﬁcial sweetener experiment, when κ¼0.5
+Choice set x1 x2 x3
+1 0.00 0.00 1.00
+1 0.39 0.34 0.27
+2 0.00 1.00 0.00
+2 0.02 0.00 0.983 1.00 0.00 0.003 0.10 0.70 0.214 0.00 0.00 1.004 0.52 0.00 0.485 0.00 0.00 1.005 0.39 0.34 0.27
+6 0.52 0.48 0.00
+6 0.17 0.15 0.687 0.06 0.00 0.947 0.00 0.51 0.49M. Becerra, P. Goos Chemometrics and Intelligent Laboratory Systems 217 (2021) 104395
+10Table 5
+Bayesian D-optimal design for the arti ﬁcial sweetener experiment, when κ¼5.
+Choice set x1 x2 x3
+1 0.00 0.00 1.00
+1 0.28 0.28 0.432 0.56 0.44 0.002 0.28 0.30 0.423 0.00 1.00 0.003 0.00 0.48 0.524 1.00 0.00 0.00
+4 0.51 0.49 0.00
+5 0.00 0.68 0.325 0.42 0.32 0.266 1.00 0.00 0.006 0.50 0.00 0.507 0.56 0.00 0.447 0.26 0.41 0.32
+Table 6
+Bayesian I-optimal design for the arti ﬁcial sweetener experiment, when κ¼5.
+Choice set x1 x2 x3
+1 0.00 0.00 1.00
+1 0.47 0.00 0.532 0.27 0.43 0.312 0.08 0.00 0.92
+3 1.00 0.00 0.00
+3 0.39 0.36 0.254 0.42 0.27 0.314 0.00 0.09 0.915 0.48 0.52 0.005 0.18 0.19 0.626 0.00 1.00 0.006 0.33 0.42 0.24
+7 0.00 0.00 1.00
+7 0.00 0.51 0.49
+Table 7
+Bayesian D-optimal design for the arti ﬁcial sweetener experiment, when κ¼10.
+Choice set x1 x2 x3
+1 0.00 0.00 1.00
+1 0.25 0.24 0.51
+2 0.00 1.00 0.002 0.00 0.57 0.433 0.55 0.00 0.453 1.00 0.00 0.004 0.54 0.00 0.464 0.28 0.38 0.345 0.57 0.43 0.00
+5 1.00 0.00 0.00
+6 0.55 0.45 0.006 0.31 0.33 0.377 0.00 0.68 0.327 0.37 0.36 0.27
+Table 8
+Bayesian I-optimal design for the arti ﬁcial sweetener experiment, when κ¼10.
+Choice set x1 x2 x3
+1 0.00 0.00 1.00
+1 0.39 0.01 0.602 0.51 0.25 0.242 0.98 0.00 0.023 0.00 0.10 0.903 0.38 0.26 0.36
+4 0.20 0.28 0.53
+4 0.44 0.55 0.015 0.27 0.41 0.325 0.12 0.00 0.886 0.00 0.00 1.006 0.01 0.41 0.587 0.00 0.96 0.047 0.27 0.52 0.21M. Becerra, P. Goos Chemometrics and Intelligent Laboratory Systems 217 (2021) 104395
+11Table 9
+Bayesian D-optimal design for the arti ﬁcial sweetener experiment, when κ¼30.
+Choice set x1 x2 x3
+1 1.00 0.00 0.00
+1 0.68 0.12 0.202 0.00 0.00 1.002 0.16 0.17 0.673 0.51 0.00 0.493 0.37 0.28 0.354 0.00 1.00 0.00
+4 0.00 0.66 0.34
+5 0.00 0.51 0.495 0.29 0.33 0.386 0.47 0.53 0.006 0.41 0.31 0.287 0.31 0.69 0.007 0.00 1.00 0.00
+Table 10
+Bayesian I-optimal design for the arti ﬁcial sweetener experiment, when κ¼30.
+Choice set x1 x2 x3
+1 0.10 0.59 0.31
+1 0.00 0.32 0.682 0.38 0.00 0.622 0.66 0.08 0.26
+3 0.24 0.54 0.22
+3 0.00 0.81 0.194 0.80 0.00 0.204 0.56 0.25 0.195 0.06 0.26 0.685 0.00 0.00 1.006 0.00 0.00 1.006 0.26 0.07 0.67
+7 0.44 0.50 0.06
+7 0.29 0.36 0.35
+References
+[1] P.E. Rossi, G.M. Allenby, R. McCulloch, Bayesian Statistics and Marketing . Plus 0.5em
+Minus 0, 4emJohn Wiley &Sons, 2012 .
+[2] K.E. Train, Discrete Choice Methods with Simulation . Plus 0.5em Minus 0,
+4emCambridge university press, 2009 .
+[3] T. Zijlstra, P. Goos, A. Verhetsel, A mixture-amount stated preference study on the
+mobility budget, Transport. Res. Pol. Pract. 126 (2019) 230 –246.
+[4] J. Luyten, R. Kessels, P. Goos, P. Beutels, Public preferences for prioritizing
+preventive and curative health care interventions: a discrete choice experiment,Value Health 18 (2) (2015) 224 –233.
+[5] R.J. Fletcher Jr., E.P. Robertson, R.C. Wilcox, B.E. Reichert, J.D. Austin,
+W.M. Kitchens, Af ﬁnity for natal environments by dispersers impacts reproduction
+and explains geographical structure of a highly mobile bird, Proc. Biol. Sci. 282
+(1814) (2015) 20151545 .
+[6] Y. Melero, T. Cornulier, M.K. Oliver, X. Lambin, Ecological traps for large-scale
+invasive species control: predicting settling rules by recolonising American mink
+post-culling, J. Appl. Ecol. 55 (4) (2018) 1769 –1779 .
+[7] M. Vardakis, P. Goos, F. Adriaensen, E. Matthysen, “Discrete choice modelling of
+natal dispersal: ’Choosing ’where to breed from a ﬁnite set of available areas,
+Methods Ecol. Evol. 6 (9) (2015) 997 –1006 .
+[8] J. Bennett, R. Blamey, The Choice Modelling Approach to Environmental Valuation .
+Plus 0.5em Minus 0, 4emEdward Elgar Publishing, 2001 .
+[9] A.B. Torres, D.C. MacMillan, M. Skutsch, J.C. Lovett, Payments for ecosystem
+services and rural development: landowners' preferences and potential participation
+in western Mexico, Ecosyst. Serv. 6 (2013) 72 –81.
+[10] O. Voj /C19a/C20cek, I. Pec /C19akov /C19a, et al., Comparison of discrete choice models for economic
+environmental research, Prague Econ. Pap. 19 (1) (2010) 35 –53.
+[11] J.A. Cornell, A Primer on Experiments with Mixtures . Plus 0.5em Minus 0, vol. 854,
+4emJohn Wiley &Sons, 2011 .
+[12] P. Goos, N. Dens, P. De Pelsmacker, L. Aleksandrovs, Using mixture-amount
+modeling to optimize the advertising media mix and quantify cross-media synergy
+for speci ﬁc target groups, Appl. Stoch Model Bus. Ind. 35 (2019) 1228 –1252 .
+[13]
+J.A. Cornell, Experiments with Mixtures . Plus 0.5em Minus 0, 4emWiley, 2002 .
+[14] S.U. Rehman, A. Paterson, J.R. Piggott, Optimisation of ﬂours for chapatti
+preparation using a mixture design, J. Sci. Food Agric. 87 (3) (2007) 425 –430.
+[15] P. Courcoux, M. S /C19em/C19enou, “Une m /C19ethode de segmentation pour l ’analyse de
+donn /C19ees issues de comparaisons par paires, Rev. Stat. Appl. 45 (2) (1997) 59 –69.
+[16] P. Goos, H. Hamidouche, Choice models with mixtures: an application to a cocktail
+experiment, Food Qual. Prefer. 77 (2019) 135 –146.[17] A. Ruseckaite, P. Goos, D. Fok, Bayesian D-optimal choice designs for mixtures,
+J. Roy. Stat. Soc.: Ser. C (Appl. Statist.) 66 (2) (2017) 363 –386.
+[18] H. Scheff /C19e, Experiments with mixtures, J. Roy. Stat. Soc. B 20 (2) (1958) 344 –360.
+[19] The simplex-centroid design for experiments with mixtures, J. Roy. Stat. Soc. B 25
+(2) (1963) 235 –251.
+[20] R. Kessels, P. Goos, M. Vandebroek, A comparison of criteria to design ef ﬁcient
+choice experiments, J. Market. Res. 43 (3) (2006) 409 –419.
+[21] A.C. Atkinson, L.M. Haines, Designs for nonlinear and generalized linear models, in:
+S. Ghosh, C. Rao (Eds.), Handbook of Statistics 13: Design and Analysis of
+Experiments, plus 0.5em minus 0.4emElsevier, 1996, pp. 437 –475.
+[22] P. Goos, B. Jones, Optimal Design of Experiments: a Case Study Approach, plus
+0.5em minus 0.4emJohn Wiley &Sons, 2011 .
+[23] P. Goos, U. Sya ﬁtri, V-optimal mixture designs for the qth degree model,
+Chemometr. Intell. Lab. Syst. 136 (2014) 173 –178.
+[24] M.C. Bliemer, J.M. Rose, D.A. Hensher, Ef ﬁcient stated choice experiments for
+estimating nested logit models, Transp. Res. Part B Methodol. 43 (1) (2009) 19 –35.
+[25] M.C. Bliemer, J.M. Rose, Construction of experimental designs for mixed logit
+models allowing for correlation across choice observations, Transp. Res. Part B
+Methodol. 44 (6) (2010) 720 –734.
+[26] —— , Experimental design in ﬂuences on stated choice outputs: an empirical study in
+air travel choice, Transport. Res. Pol. Pract. 45 (1) (2011) 63 –79.
+[27] L. Burgess, D.J. Street, Optimal designs for choice experiments with asymmetric
+attributes, J. Stat. Plann. Inference 134 (1) (2005) 288 –301.
+[28] U. Grasshoff, H. Gro ßmann, H. Holling, R. Schwabe, Optimal paired comparison
+designs for ﬁrst-order interactions, Statistics 37 (5) (2003) 373 –386.
+[29] R. Kessels, B. Jones, P. Goos, M. Vandebroek, The usefulness of Bayesian optimal
+designs for discrete choice experiments, Appl. Stoch Model Bus. Ind. 27 (3) (2011)
+173–188.
+[30] E.G. Ryan, C.C. Drovandi, J.M. McGree, A.N. Pettitt, “, A review of modern
+computational algorithms for Bayesian optimal design, Int. Stat. Rev. 84 (1) (2016)
+128–154.
+[31] R. Kessels, B. Jones, P. Goos, M. Vandebroek, An ef ﬁcient algorithm for constructing
+Bayesian optimal choice designs, J. Bus. Econ. Stat. 27 (2) (2009) 279 –291.
+[32] P. Goos, B. Jones, U. Sya ﬁtri, I-optimal design of mixture experiments, J. Am. Stat.
+Assoc. 111 (514) (2016) 899 –911 (publisher: Taylor &Francis) .
+[33] P. Goos, U. Sya ﬁtri, B. Sartono, A. Vazquez, A nonlinear multidimensional knapsack
+problem in the optimal design of mixture experiments, Eur. J. Oper. Res. 281 (1)
+(2020) 201 –221.
+[34] M.H. DeGroot, Optimal Statistical Decisions, vol. 82, plus 0.5em minus 0.4emJohn
+Wiley&Sons, 2005 .M. Becerra, P. Goos Chemometrics and Intelligent Laboratory Systems 217 (2021) 104395
+12[35] R.K. Meyer, C.J. Nachtsheim, The coordinate-exchange algorithm for constructing
+exact optimal experimental designs, Technometrics 37 (1) (1995) 60 –69.
+[36] R Core Team, R: A Language and Environment for Statistical Computing, R
+Foundation for Statistical Computing, Vienna, Austria, 2017 [Online]. Available:
+https://www.R-project.org/ .
+[37] N.E. Hamilton, M. Ferry, ggtern: ternary diagrams using ggplot2, J. Statist.
+Software, Code Snippets 87 (3) (2018) 1 –17.
+[38] H. Wickham, ggplot2: Elegant Graphics for Data Analysis, plus 0.5em minus
+0.4emSpringer-Verlag New York, 2016 [Online]. Available: https://ggplot2.tidy
+verse.org .
+[39] H. Wickham, J. Hester, W. Chang, Devtools: Tools to Make Developing R Packages
+Easier, 2020. R package version 2.3.2. [Online]. Available: https://CRAN.R-projec
+t.org/package ¼devtools .
+[40] D. Eddelbuettel, R. François, Rcpp: seamless R and C þþintegration, J. Stat.
+Software 40 (8) (2011) 1 –18 [Online]. Available: https://www.jstatsoft.org
+/v40/i08/ .
+[41] D. Eddelbuettel, Seamless R and C þþIntegration with Rcpp . Plus 0.5em Minus 0,
+Springer, 4emNew York, 2013 iSBN 978-1-4614-6867-7 .
+[42] D. Eddelbuettel, J.J. Balamuta, Extending R with C þþ: a brief introduction to rcpp,
+Am. Statistician 72 (1) (2018) 28 –36.[43] D. Eddelbuettel, C. Sanderson, RcppArmadillo: accelerating R with high-
+performance C þþlinear algebra, Comput. Stat. Data Anal. 71 (2014) 1054 –1063,
+3.
+[44] L. Henry, H. Wickham, Purrr: functional programming tools, R package version
+0.3.4. [Online]. Available: https://CRAN.R-project.org/package ¼purrr , 2020.
+[45] G.F. Piepel, S.K. Cooley, B. Jones, Construction of a 21-component layered mixture
+experiment design using a new mixture coordinate-exchange algorithm, Qual. Eng.
+17 (4) (2005) 579 –594.
+[46] R.P. Brent, Algorithms for Minimization without Derivatives . Plus 0.5em Minus 0,
+Prentice Hall, 4emEnglewood Cliffs, 1973 .
+[47] J. Yu, P. Goos, M. Vandebroek, Comparing different sampling schemes for
+approximating the integrals involved in the ef ﬁcient design of stated choice
+experiments, Transp. Res. Part B Methodol. 44 (10) (2010) 1268 –1289 .
+[48] A. Zahran, C.M. Anderson-Cook, R.H. Myers, Fraction of design space to assess
+prediction capability of response surface designs, J. Qual. Technol. 35 (4) (2003)
+377–386.
+[49] J. Huber, K. Zwerina, The importance of utility balance in ef ﬁcient choice designs,
+J. Market. Res. 33 (3) (1996) 307 –317.
+[50] J.J. Louviere, D. Pihlens, R. Carson, Design of discrete choice experiments: a
+discussion of issues that matter in future applied research, J. Choice Modell. 4 (1)
+(2011) 1 –8.M. Becerra, P. Goos Chemometrics and Intelligent Laboratory Systems 217 (2021) 104395
+13

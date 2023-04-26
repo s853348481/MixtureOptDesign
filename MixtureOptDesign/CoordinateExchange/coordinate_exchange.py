@@ -23,7 +23,7 @@ class CoordinateExchangeIOptimal:
                             canditate_design = np.copy(self._design)
                             canditate_design[:, j, s] = cox_directions[cox_direction,:]
                             i_new_value = get_i_optimality_mnl(canditate_design,self._order,self._beta)
-                            if self._i_opt_value >= i_new_value:
+                            if self._i_opt_value >= i_new_value :
                                 self._design = canditate_design
                                 self._i_opt_value = i_new_value
         return self._design.copy()
