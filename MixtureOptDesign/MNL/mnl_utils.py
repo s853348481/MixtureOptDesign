@@ -385,7 +385,6 @@ def get_information_matrix_mnl(design: np.ndarray, order: int, beta:np.ndarray)-
     
     return information_matrix
     
-   
 def get_moment_matrix(q:int, order:int) -> np.ndarray:
     """
     Computes the moment matrix for a multinomial logit (MNL) model of order 1, 2 or 3.
@@ -587,3 +586,10 @@ def transform_varcov_matrix(id_matrix: np.ndarray, q: int, k = 1) -> np.ndarray:
     Sigma_prime[q-1:, q-1:] = id_matrix[q:, q:]
     
     return Sigma_prime *k
+
+
+def get_i_optimality_bayesian(design: np.ndarray, order: int, beta: np.ndarray) -> float:
+    
+    #apply a function to each row. 
+    i_opt_array = np.apply_along_axis(lambda beta_array: get_i_optimality_mnl(design, order, beta_array), 1, beta)
+    return np.mean(i_opt_array)

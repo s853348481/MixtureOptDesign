@@ -1,10 +1,9 @@
 import numpy as np
 import pytest
 
-from MixtureOptDesign.MNL.mnl_utils import *
 from Tests.utils import check_mnl_design_sum
 from MixtureOptDesign.data.csv_util import read_csv_file
-
+from MixtureOptDesign.MNL.utils import *
 
 @pytest.fixture
 def arr():
@@ -57,7 +56,8 @@ class TestInitialDesign(object):
         n_ingredients = 3
         n_alternatives = 4
         n_choice_sets = 5
-        result = get_random_initial_design_mnl(n_ingredients, n_alternatives, n_choice_sets)
+        seed=123
+        result = get_random_initial_design_mnl(n_ingredients, n_alternatives, n_choice_sets,seed)
         assert result.shape == (n_ingredients, n_alternatives, n_choice_sets), f"Resulting shape is {result.shape}, expected {(n_ingredients, n_alternatives, n_choice_sets)}"
 
     # test case to check that the function returns an array where each alternative's values sum to 1
@@ -65,7 +65,8 @@ class TestInitialDesign(object):
         n_ingredients = 3
         n_alternatives = 4
         n_choice_sets = 5
-        result = get_random_initial_design_mnl(n_ingredients, n_alternatives, n_choice_sets)
+        seed=123
+        result = get_random_initial_design_mnl(n_ingredients, n_alternatives, n_choice_sets,seed)
         check_mnl_design_sum(result)
 
     # test case to check that the function returns different results when using different random seeds
@@ -104,7 +105,7 @@ class TestGetParameters(object):
 class TestGetBetaCoefficients(object):
     
     def test_linear(self):
-        beta = np.arange(1,4)
+        beta = np.arange(1,4,dtype=np.double)
         q = 4
         order = 1
         expected_output = (np.arange(1,4), np.empty((0,)), np.empty((0,)))
@@ -112,7 +113,7 @@ class TestGetBetaCoefficients(object):
         
         
     def test_quadratic(self):
-        beta = np.arange(1,10)
+        beta = np.arange(1,10,dtype=np.double)
         q = 4
         order = 2
         expected_output = (np.arange(1,4), np.arange(4,10), np.empty((0,)))
@@ -120,7 +121,7 @@ class TestGetBetaCoefficients(object):
 
 
     def test_cubic(self):
-        beta = np.arange(1,7)
+        beta = np.arange(1,7,dtype=np.double)
         q = 3
         order = 3
         expected_output = (np.arange(1,3), np.arange(3,6), np.arange(6,7))
@@ -136,7 +137,7 @@ class TestGetBetaCoefficients(object):
             get_beta_coefficients(beta, q, order)
             
     def test_beta_error(self):
-        beta = np.array([1, 2, 3, 4, 5, 6])
+        beta = np.array([1, 2, 3, 4, 5, 6],dtype=np.double)
         q = 4
         order = 2
         with pytest.raises(ValueError):
@@ -147,10 +148,10 @@ class TestMultiplyArrays(object):
 
     def test_multiply_arrays(self):
     
-        a = np.array([1, 2, 3])
-        b = np.array([4, 5, 6])
-        c = np.array([7, 8, 9])
-        expected_result = np.array([28, 80, 162])
+        a = np.array([1, 2, 3],dtype=np.float64)
+        b = np.array([4, 5, 6],dtype=np.float64)
+        c = np.array([7, 8, 9],dtype=np.float64)
+        expected_result = np.array([28, 80, 162],dtype=np.float64)
         assert np.array_equal(multiply_arrays(a, b, c), expected_result)
 
     def test_multiply_arrays_empty_input(self):
@@ -374,7 +375,7 @@ class TestGetChoiceProbabilities(object):
 
     def test_2D_array(self):
         # Test that the function returns a 2-D numpy array
-        U = np.array([[1, 2, 3], [4, 5, 6]])
+        U = np.array([[1, 2, 3], [4, 5, 6]],dtype=np.double)
         P = get_choice_probabilities(U)
         assert isinstance(P, np.ndarray)
         assert P.ndim == 2
@@ -382,20 +383,20 @@ class TestGetChoiceProbabilities(object):
     
     def test_shape(self):
         # Test that the shape of the returned array is correct
-        U = np.array([[1, 2, 3], [4, 5, 6]])
+        U = np.array([[1, 2, 3], [4, 5, 6]],dtype=np.double)
         P = get_choice_probabilities(U)
         assert P.shape == (2, 3)
     
     
     def test_sum_to_one(self):
         # Test that the sum of the probabilities for each decision is 1
-        U = np.array([[1, 2, 3], [4, 5, 6]])
+        U = np.array([[1, 2, 3], [4, 5, 6]],dtype=np.double)
         P = get_choice_probabilities(U)
         assert np.allclose(np.sum(P, axis=0), np.ones(3))
     
     def test_calculate(self):
         # Test that the probabilities are calculated correctly
-        U = np.array([[1, 2, 3], [4, 5, 6]])
+        U = np.array([[1, 2, 3], [4, 5, 6]],dtype=np.double)
         P = get_choice_probabilities(U)
         assert np.allclose(P, np.array([[0.04742587, 0.04742587, 0.04742587],[0.95257413, 0.95257413, 0.95257413]]))
     
@@ -505,7 +506,6 @@ class TestTransformVarcovMatrix(object):
         result = transform_varcov_matrix(id_matrix, q)
         assert np.array_equal(result, expected_result), f"Test case 4 failed: {result}"
 
-        print("All test cases passed.")
     
 
 

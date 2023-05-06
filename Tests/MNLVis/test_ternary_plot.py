@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 import pytest
 from Tests.utils import check_mnl_design_sum
 
-from MixtureOptDesign.MNLVis.ternary_plot import *
+from MixtureOptDesign.MNLVis.ternary_plot import plot_ternary_design
 
 # Define fixture for design data
 @pytest.fixture
