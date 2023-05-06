@@ -2,7 +2,7 @@ import numpy as np
 from scipy.spatial.distance import pdist
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 import matplotlib.pyplot as plt
-from MixtureOptDesign.MNL.mnl_utils import get_i_optimality_mnl
+from MixtureOptDesign.MNL.utils import get_i_optimality_bayesian, get_i_optimality_mnl
 from sklearn.cluster import AgglomerativeClustering
 from typing import List
 import pandas as pd
@@ -87,13 +87,16 @@ def replace_with_clusters(data: np.ndarray, labels: np.ndarray, clusters: np.nda
 
 
 class Cluster:
-    def __init__(self, design:np.ndarray):
+    def __init__(self, design:np.ndarray,bayesian:bool=True):
         self._q, self._j, self._s = design.shape
         self._design = design
         self._design_2d = self._design.reshape(self._q, self._j * self._s).T
         
         self.labels = None
         self.clusters = None
+    
+            
+        self.get_i_optimality= get_i_optimality_bayesian if bayesian else get_i_optimality_mnl
 
     #abstract method
     def fit(self, k:int)-> np.ndarray:
@@ -107,20 +110,19 @@ class Cluster:
         # Use the replace_with_clusters function to assign each data point to its corresponding cluster
         return replace_with_clusters(self._design_2d, self.labels, self.clusters)
     
-    def get_elbow_curve(self,beta:np.ndarray,order:int, linkage_methods:List[str]=['ward', 'complete', 'average']):
+    def get_elbow_curve(self,beta:np.ndarray,order:int,name,linkage_methods:List[str]=['ward', 'complete', 'average']):
         """
         Plots the elbow curve for the given clustering algorithm between the start and end values of k.
 
         Parameters
         ----------
-        beta : numpy.ndarray of shape (p,)
-                A 1-dimensional array of p numbers of beta coefficients for the model.
+        beta : numpy.ndarray of shape (,p)
+                A 2-dimensional array of p numbers of beta coefficients for the model.
             
         order : int
                 The maximum order of interactions to include in the model. Must be 1, 2 or 3.
         linkage_methods : List of str, optional
-                The different linkage methods. Default is ['ward', 'complete', 'average']
-                  
+                The different linkage methods. Default is ['ward', 'complete', 'average']   
             
 
         Returns
@@ -134,7 +136,7 @@ class Cluster:
         colors = ['r', 'g', 'b']
         
         # Define the number of clusters to compare
-        min_clusters = beta.size +1
+        min_clusters = beta.shape[1] + 1
                 
         # Set the maximum number of clusters
         max_clusters = self.get_unique_rows(self._design_2d)
@@ -156,10 +158,12 @@ class Cluster:
                 cluster_design = replaced_data.T.reshape(self._design.shape)
                 
                 # Calculate the I-optimality criterion for the replaced values
-                i_opt = get_i_optimality_mnl(cluster_design, order, beta)
+
+                # Calculate the average I-optimality criterion over all Halton draws
+                i_opt_avg = self.get_i_optimality(cluster_design, order, beta)
 
                 # Store the I-optimality criterion value
-                i_opt_values.append(i_opt)
+                i_opt_values.append(i_opt_avg)
 
 
             # Plot the elbow curve
@@ -167,15 +171,21 @@ class Cluster:
             
             # Add the I-optimality values to the DataFrame
             df.loc[len(df)] = [linkage_method] + i_opt_values
-            
+        
+        # DataFrame
+        df.T.to_csv(f'MixtureOptDesign/data/cluster_{name}.csv', index=False)   
         plt.xlabel('Number of clusters (k)')
         plt.ylabel('I-optimality')
         plt.title('Elbow curve')
         plt.legend()
+        
+        
+        plt.savefig(f'MixtureOptDesign/data/elbow_curve_{name}.png')
+
+        
         plt.show()
     
-        # Print the DataFrame
-        print(df)
+        
     def get_unique_rows(self,arr:np.ndarray, tolerance=1e-9)->int:
         """
         Get the unique rows of a 2D numpy array based on a specified tolerance level for element-wise equality comparisons.
