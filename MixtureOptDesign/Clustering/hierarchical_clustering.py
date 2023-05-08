@@ -2,7 +2,7 @@ import numpy as np
 from scipy.spatial.distance import pdist
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 import matplotlib.pyplot as plt
-from MixtureOptDesign.MNL.utils import get_i_optimality_bayesian, get_i_optimality_mnl
+from MixtureOptDesign.MNL.mnl_utils import get_i_optimality_bayesian, get_i_optimality_mnl
 from sklearn.cluster import AgglomerativeClustering
 from typing import List
 import pandas as pd

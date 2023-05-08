@@ -1,9 +1,9 @@
 
 
-from MixtureOptDesign.MNL.utils import * 
+import MixtureOptDesign
 from MixtureOptDesign.MNLVis.ternary_plot import plot_ternary_design,check_mnl_design_sum
 from .Clustering.hierarchical_clustering import hierarchical_clustering,replace_with_clusters,HierarchicalCluster,AgglomerativeCluster
-from .CoordinateExchange.coordinate import CoordinateExchangeIOptimal,ClusteredCoordinateExchangeIOptimal
+from .CoordinateExchange.coordinate_exchange import CoordinateExchangeIOptimal
 
 
 from .HaltonDraws.halton_draws import HaltonDraws

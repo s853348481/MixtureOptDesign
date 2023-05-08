@@ -1,6 +1,6 @@
 import numpy as np
 
-from MixtureOptDesign.MNL.utils import *
+from MixtureOptDesign.MNL.mnl_utils import *
 # from ..MNL.utils import (
 #     compute_cox_direction,
 #     generate_beta_params,
