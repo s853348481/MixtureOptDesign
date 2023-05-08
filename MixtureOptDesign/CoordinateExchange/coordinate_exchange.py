@@ -127,6 +127,7 @@ class CoordinateExchangeIOptimal:
                             canditate_design = design.copy()
                             # Replace the current Mixture with the Cox direction
                             canditate_design[:, j, s] = cox_directions[cox_direction,:]
+<<<<<<< HEAD
                             try:
                                 # Compute optimality criterion for candidate design
                                 i_new_value = self.get_i_optimality(canditate_design,self._order,self._beta)
@@ -144,6 +145,13 @@ class CoordinateExchangeIOptimal:
         print("Final Optimality criterion value: ", i_best)
         print("Number of iterations: ", it)
         return design.copy()
+=======
+                            i_new_value = get_i_optimality_mnl(canditate_design,self._order,self._beta)
+                            if self._i_opt_value >= i_new_value :
+                                self._design = canditate_design
+                                self._i_opt_value = i_new_value
+        return self._design.copy()
+>>>>>>> e747bbcd2ba241b32c14ec2c5aada3cf7cecd9d7
     
 
     def get_order(self) -> int:

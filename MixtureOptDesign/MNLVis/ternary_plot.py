@@ -86,3 +86,37 @@ def plot_ternary_design(design):
     )
    # Show the plot
     return fig
+
+
+"""
+
+The plot_numCluster_iValue function takes in three arguments: design (a NumPy array with shape (3, num_points)), order (an integer), and beta (a NumPy array of shape (order,)).
+
+The function computes the total number of points in design, creates a list of i-values for different numbers of clusters,
+and returns a line plot of these values along with a pandas DataFrame containing the data.
+
+The function returns a tuple containing the plot and the DataFram
+"""
+
+
+
+def plot_numCluster_iValue(design: np.ndarray, order: int, beta: np.ndarray) :
+    x = design[0].flatten()
+    y = design[1].flatten()
+    z = design[2].flatten()
+    table = np.vstack((x,y,z)).T
+
+    num_points=design.shape[1]*design.shape[2]
+
+
+    list_cluster_ivlaue=list()
+    list_index=list()
+    for i in range(int(num_points/4),int(num_points/2+1)): 
+        cluster_design = MixtureOptDesign.hierarchical_clustering(table,i)
+        i_value=MixtureOptDesign.get_i_optimality_mnl(cluster_design, order, beta)
+        list_index.append(i)
+        list_cluster_ivlaue.append(i_value)
+    df=pd.DataFrame(list(zip(list_index,list_cluster_ivlaue)), columns=['num_clusters','I_value'])
+    plot=df.plot(x='num_clusters',y='I_value')
+
+    return plot, df
